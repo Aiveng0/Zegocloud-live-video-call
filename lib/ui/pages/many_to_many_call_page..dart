@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_final_fields
+
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -46,12 +48,13 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   late int _previewViewID;
   late Widget _previewViewWidget;
 
-  Widget? _playViewWidget;
-  late int _playViewID;
   late String _myStreamID;
 
-  List<int> _playViewIDList = [];
-  List _playViewWidgetList = [];
+  List<int> _remoteViewIDs = [];
+  List<Texture> _remoteViewWidgets = [];
+
+  List<ZegoStream> _remoteStreams = [];
+  List<VideoModel> _videoModelList = [];
 
   @override
   void initState() {
@@ -98,22 +101,76 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   Future<void> eventHandler() async {
     /// The callback triggered when the number of streams published by the other users increases or decreases.
+    /// [streamList] it is ONLY updated stream!
     ZegoExpressEngine.onRoomStreamUpdate = (roomID, updateType, streamList, extendedData) async {
       if (updateType == ZegoUpdateType.Add) {
         log('ZegoUpdateType.Add');
+
         await playRemoteStreams(streamList);
       }
       if (updateType == ZegoUpdateType.Delete) {
         log('ZegoUpdateType.Delete');
-        for (var stream in streamList) {
-          await ZegoExpressEngine.instance.stopPlayingStream(stream.streamID);
+
+        log('_videoModelList = ${_videoModelList.length}');
+        log('_remoteViewIDs = ${_remoteViewIDs.length}');
+        log('_remoteViewWidgets = ${_remoteViewWidgets.length}');
+        log('_remoteStreams = ${_remoteStreams.length}');
+
+        List<int> deletedViewIDs = [];
+        List<ZegoStream> deletedStreams = [];
+        List<Texture> availableTextures = [];
+        List<ZegoStream> availableStreams = [];
+        List<VideoModel> availableVideoModel = [];
+
+        for (var model in _videoModelList) {
+          for (var stream in streamList) {
+            if (model.stream?.streamID == stream.streamID) {
+              deletedViewIDs.add(model.viewID!);
+              deletedStreams.add(stream);
+            } else {
+              availableVideoModel.add(model);
+            }
+          }
         }
-        for (var viewID in _playViewIDList) {
-          await ZegoExpressEngine.instance.destroyTextureRenderer(viewID);
+
+        _videoModelList.clear();
+        _videoModelList.addAll(availableVideoModel);
+
+        for (var stream in deletedStreams) {
+          ZegoExpressEngine.instance.stopPlayingStream(stream.streamID);
+
+          for (var el in _remoteStreams) {
+            if (el.streamID != stream.streamID) {
+              availableStreams.add(el);
+            }
+          }
         }
-        setState(() {
-          _playViewWidgetList.clear();
-        });
+
+        _remoteStreams.clear();
+        _remoteStreams.addAll(availableStreams);
+
+        for (var viewID in deletedViewIDs) {
+          ZegoExpressEngine.instance.destroyTextureRenderer(viewID);
+          _remoteViewIDs.remove(viewID);
+
+          for (var texture in _remoteViewWidgets) {
+            if (texture.textureId != viewID) {
+              availableTextures.add(texture);
+            }
+          }
+        }
+
+        _remoteViewWidgets.clear();
+        _remoteViewWidgets.addAll(availableTextures);
+
+        log('=======================================');
+
+        log('_videoModelList = ${_videoModelList.length}');
+        log('_remoteViewIDs = ${_remoteViewIDs.length}');
+        log('_remoteViewWidgets = ${_remoteViewWidgets.length}');
+        log('_remoteStreams = ${_remoteStreams.length}');
+
+        setState(() {});
       }
     };
 
@@ -129,16 +186,21 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
     /// The callback triggered when the number of other users in the room increases or decreases.
     ZegoExpressEngine.onRoomUserUpdate = (roomID, updateType, userList) {
-      userList.first.userID;
-      // TODO:
-      // allUserID.add(userList.first.userID);
-      // .add(RemoteVideoCard);
+      if (updateType == ZegoUpdateType.Add) {
+        _onlineUsersCount += userList.length;
+      } else {
+        _onlineUsersCount -= userList.length;
+      }
+
+      setState(() {});
     };
 
     /// The callback triggered every 30 seconds to report the current number of online users.
     ZegoExpressEngine.onRoomOnlineUserCountUpdate = (roomID, count) {
-      log('onRoomOnlineUserCountUpdate => $count');
-      setState(() => _onlineUsersCount = count);
+      if (count != _onlineUsersCount) {
+        log('onRoomOnlineUserCountUpdate => $count');
+        setState(() => _onlineUsersCount = count);
+      }
     };
   }
 
@@ -191,21 +253,26 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     final int width = (size.width - 40 - 20) ~/ 3;
     final int height = (size.height - 80 - 40) ~/ 4;
 
-    _playViewIDList.clear();
-    _playViewWidgetList.clear();
-
-    for (ZegoStream stream in streamList) {
-      await ZegoExpressEngine.instance.createTextureRenderer(width, height).then((viewID) {
-        _playViewIDList.add(viewID);
-
+    for (var stream in streamList) {
+      ZegoExpressEngine.instance.createTextureRenderer(width, height).then((viewID) {
         /// Add the Widget you get to the layertree for displaying the view of video preview.
-        setState(() {
-          _playViewWidgetList.add(Texture(textureId: viewID));
-        });
+
+        _remoteViewIDs.add(viewID);
+        _remoteStreams.add(stream);
+        _remoteViewWidgets.add(Texture(textureId: viewID));
+
+        _videoModelList.add(
+          VideoModel(
+            stream: stream,
+            viewID: viewID,
+          ),
+        );
 
         _startPlayingStream(viewID, stream.streamID);
       });
     }
+
+    setState(() {});
   }
 
   Future<void> _startPlayingStream(int viewID, String streamID) async {
@@ -214,16 +281,19 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   }
 
   List _rowViewList() {
-    List list = [_cameraEnabled ? _previewViewWidget : const LocalVideoDisabled()];
+    List<Widget> list = [_cameraEnabled ? _previewViewWidget : const LocalVideoDisabled()];
 
-    list.addAll(_playViewWidgetList);
+    list.addAll(_remoteViewWidgets);
 
-    if (list.length < _onlineUsersCount) {
-      for (var i = 0; i < (_onlineUsersCount - list.length); i++) {
+    final listLength = list.length;
+
+    if (listLength < _onlineUsersCount) {
+      for (var i = 0; i < (_onlineUsersCount - listLength); i++) {
         list.add(const RemoteVideoDisabled());
       }
     }
 
+    // log('Video card list size => ${list.length}');
     return list;
   }
 

@@ -1,4 +1,4 @@
 const int appID = 175965307;
 const String appSign = 'ab37613e2e81a22f5aa1b22ca60f0771452291b8296e103b049149b4fc62efb4';
 const String token =
-    '04AAAAAGMPQTEAEHNtaGE0eWNxenFua2VhanMAoFI+HZMdn34xws4NetvcrZKHIP/knEKzbdr0SfZCAbCecmkZFIfnswOPW1Q8GuBflcNeqv7Pra+9TeztpS7oItB5vylQaW0jpXpNCYTlJ3kYhOn+Tbd2d3lul73NHqrUjw1hoZLu5RkQkUn4uokyljmQabLFEcwaV9DsEGteaVYPwR3UNTT6LuBMPeq5T+dFQ+0P/tl30xhCTRcmaP8vaco=';
+    '04AAAAAGMR99wAEGd1eDF0bm0zcG03amtoMXkAoE/tZd5rQLwTMUq+IwQKdoqeTCnv0gvthxcLyOZoS1b+Chcd/Bj+6tsg+iiVr+EsKSX0PSA3FwgF80MI77qg9saeUzgZPTSNB1HIiwXzyNAul9838RlHXUgxQHy4jbZszvCFkg92e5ZKXTg47zaGqJZJj1Jd9vm5BsdicQB6uxw6XdahCi86WyEKqkMbco9lC1yUuIXvXM35j7s9IO0WRwQ=';
