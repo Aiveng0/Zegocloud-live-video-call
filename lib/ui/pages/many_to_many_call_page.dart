@@ -56,6 +56,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   List<ZegoStream> _remoteStreams = [];
   List<VideoModel> _videoModelList = [];
 
+  // List<Texture> _disabledViewWidgets = [];
+  // List<ZegoStream> _disabledRemoteStreams = [];
+  List<VideoModel> _disabledVideoModelList = [];
+
   @override
   void initState() {
     createEngine();
@@ -91,6 +95,21 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
     /// To receive the onRoomUserUpdate callback, you must set the isUserStatusNotify property of the room configuration parameter ZegoRoomConfig to true when you call the loginRoom method to log in to a room.
     config.isUserStatusNotify = true;
+
+    /// https://doc-zh.zego.im/article/15213#:~:text=3%20%E4%BD%BF%E7%94%A8%E6%AD%A5%E9%AA%A4-,3.1%20%E8%AE%BE%E7%BD%AE%20AEC%EF%BC%88%E5%9B%9E%E5%A3%B0%E6%B6%88%E9%99%A4%EF%BC%89,-enableAEC%20%E3%80%81enableHeadphoneAEC
+    ///
+    /// Acoustic Echo Cancellation (AEC)
+    ZegoExpressEngine.instance.enableAEC(true);
+    ZegoExpressEngine.instance.enableHeadphoneAEC(false);
+    ZegoExpressEngine.instance.setAECMode(ZegoAECMode.Aggressive);
+
+    /// Automatic gain control (AGC)
+    ZegoExpressEngine.instance.enableAGC(true);
+
+    /// Active noise suppression (ANS, aka ANC)
+    ZegoExpressEngine.instance.enableANS(true);
+    ZegoExpressEngine.instance.enableTransientANS(true);
+    ZegoExpressEngine.instance.setANSMode(ZegoANSMode.Medium);
 
     await ZegoExpressEngine.instance.loginRoom(
       widget.roomID,
@@ -164,7 +183,6 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _remoteViewWidgets.addAll(availableTextures);
 
         log('=======================================');
-
         log('_videoModelList = ${_videoModelList.length}');
         log('_remoteViewIDs = ${_remoteViewIDs.length}');
         log('_remoteViewWidgets = ${_remoteViewWidgets.length}');
@@ -178,9 +196,112 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     ZegoExpressEngine.onRemoteCameraStateUpdate = (streamID, state) async {
       if (state == ZegoRemoteDeviceState.Open) {
         log('ZegoRemoteDeviceState.Open');
+
+        late int enabledViewID;
+        ZegoStream? newEnabledStream;
+        List<Texture> disabledTextureList = [];
+
+        List<VideoModel> disabledVideoModels = [];
+        // List<ZegoStream> disabledStreams = [];
+
+        for (var model in _disabledVideoModelList) {
+          if (model.stream?.streamID == streamID) {
+            newEnabledStream = model.stream!;
+            enabledViewID = model.viewID!;
+          } else {
+            // disabledStreams.add(model.stream!);
+            disabledVideoModels.add(model);
+          }
+        }
+
+        // _disabledRemoteStreams.clear();
+        // _disabledRemoteStreams.addAll(disabledStreams);
+
+        _disabledVideoModelList.clear();
+        _disabledVideoModelList.addAll(disabledVideoModels);
+
+        // for (var texture in _disabledViewWidgets) {
+        //   if (texture.textureId != enabledViewID) {
+        //     disabledTextureList.add(texture);
+        //   }
+        // }
+
+        // _disabledViewWidgets.clear();
+        // _disabledViewWidgets.addAll(disabledTextureList);
+
+        if (newEnabledStream != null) {
+          final Size size = MediaQuery.of(context).size;
+          final int width = (size.width - 40 - 20) ~/ 3;
+          final int height = (size.height - 80 - 40) ~/ 4;
+
+          ZegoExpressEngine.instance.createTextureRenderer(width, height).then((viewID) {
+            /// Add the Widget you get to the layertree for displaying the view of video preview.
+
+            _remoteViewIDs.add(viewID);
+            _remoteStreams.add(newEnabledStream!);
+            _remoteViewWidgets.add(Texture(textureId: viewID));
+
+            _videoModelList.add(
+              VideoModel(
+                stream: newEnabledStream,
+                viewID: viewID,
+              ),
+            );
+
+            _startPlayingStream(viewID, newEnabledStream.streamID);
+          });
+
+          setState(() {});
+        }
       }
       if (state == ZegoRemoteDeviceState.Disable) {
         log('ZegoRemoteDeviceState.Disable');
+
+        late int disabledViewID;
+        late Texture disabledTexture;
+        late VideoModel disabledVideoModel;
+        // late ZegoStream disabledStream;
+
+        List<Texture> enabledTextureList = [];
+        List<VideoModel> enabledVideoModels = [];
+        List<ZegoStream> enabledStreams = [];
+
+        for (var model in _videoModelList) {
+          if (model.stream?.streamID == streamID) {
+            disabledViewID = model.viewID!;
+            disabledVideoModel = model;
+            // disabledStream = model.stream!;
+          } else {
+            _remoteViewIDs.remove(model.viewID!);
+            enabledStreams.add(model.stream!);
+            enabledVideoModels.add(model);
+          }
+        }
+
+        _remoteStreams.clear();
+        _remoteStreams.addAll(enabledStreams);
+        _disabledVideoModelList.add(disabledVideoModel);
+
+        _videoModelList.clear();
+        _videoModelList.addAll(enabledVideoModels);
+        // _disabledRemoteStreams.add(disabledStream);
+
+        for (var texture in _remoteViewWidgets) {
+          if (texture.textureId == disabledViewID) {
+            disabledTexture = texture;
+          } else {
+            enabledTextureList.add(texture);
+          }
+        }
+
+        _remoteViewWidgets.clear();
+        _remoteViewWidgets.addAll(enabledTextureList);
+        // _disabledViewWidgets.add(disabledTexture);
+
+        ZegoExpressEngine.instance.destroyTextureRenderer(disabledViewID);
+        _remoteViewIDs.remove(disabledViewID);
+
+        setState(() {});
       }
     };
 
