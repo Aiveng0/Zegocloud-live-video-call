@@ -26,7 +26,7 @@ class _ToolbarState extends State<Toolbar> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 40,
+      bottom: 25,
       left: 0,
       right: 0,
       child: Row(
