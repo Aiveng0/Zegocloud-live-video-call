@@ -1,39 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:zegocloud_live_video_call/ui/widgets/remote_video_disabled.dart';
 
-class RemoteVideoCard extends StatefulWidget {
+class RemoteVideoCard extends StatelessWidget {
   const RemoteVideoCard({
     Key? key,
     required this.textureWidget,
+    required this.textureSize,
   }) : super(key: key);
 
-  final Widget? textureWidget;
-  // final int streamID;
-
-  @override
-  State<RemoteVideoCard> createState() => _RemoteVideoEnabledState();
-}
-
-class _RemoteVideoEnabledState extends State<RemoteVideoCard> {
-  Widget _getPlayViewWidget(Widget? textureWidget) {
-    if (textureWidget != null) {
-      return textureWidget;
-    }
-
-    return const RemoteVideoDisabled();
-  }
+  final Widget textureWidget;
+  final Size textureSize;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: (MediaQuery.of(context).size.width - 40 - 20) / 3,
-      height: (MediaQuery.of(context).size.height - 80 - 40) / 4,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: _getPlayViewWidget(
-          widget.textureWidget,
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        color: Colors.grey,
+        width: textureSize.width,
+        height: textureSize.height,
+        child: textureWidget,
       ),
     );
+  }
+}
+
+class MyCustomClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    double width = size.width;
+    double height = size.height;
+    double rt = height - width;
+    Path path = Path();
+
+    path.moveTo(0, height - width);
+    path.lineTo(width - rt, height - width);
+    path.lineTo(width - rt, width);
+    path.lineTo(0, width);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+    return true;
   }
 }

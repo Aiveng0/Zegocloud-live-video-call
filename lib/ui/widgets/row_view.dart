@@ -5,9 +5,11 @@ class RowView extends StatelessWidget {
   const RowView({
     Key? key,
     required this.list,
+    required this.textureSize,
   }) : super(key: key);
 
   final List list;
+  final Size textureSize;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,7 @@ class RowView extends StatelessWidget {
           list.length,
           (index) => RemoteVideoCard(
             textureWidget: list[index],
+            textureSize: textureSize,
           ),
         ),
       ),
