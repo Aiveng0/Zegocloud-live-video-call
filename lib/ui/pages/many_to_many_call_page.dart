@@ -4,12 +4,11 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
-import 'package:zegocloud_live_video_call/ui/widgets/local_video_disabled.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/online_users_counter.dart';
-import 'package:zegocloud_live_video_call/ui/widgets/remote_video_disabled.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/row_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
-import 'package:zegocloud_live_video_call/utils/user_settings_manager.dart';
+import 'package:zegocloud_live_video_call/utils/call_helper.dart';
+import 'package:zegocloud_live_video_call/utils/texture_size_helper.dart';
 
 class ManyToManyCallPage extends StatefulWidget {
   const ManyToManyCallPage({
@@ -19,6 +18,7 @@ class ManyToManyCallPage extends StatefulWidget {
     required this.appSign,
     required this.appID,
     required this.token,
+    this.username = 'Anonym',
   }) : super(key: key);
 
   final String userID;
@@ -26,6 +26,7 @@ class ManyToManyCallPage extends StatefulWidget {
   final String? appSign;
   final String token;
   final int appID;
+  final String username;
 
   @override
   State<ManyToManyCallPage> createState() => _VideoCallPageState();
@@ -33,37 +34,51 @@ class ManyToManyCallPage extends StatefulWidget {
 
 class VideoModel {
   VideoModel({
-    this.stream,
+    required this.stream,
     this.viewID,
+    this.texture,
   });
-  ZegoStream? stream;
+  ZegoStream stream;
   int? viewID;
+  Texture? texture;
 }
 
 class _VideoCallPageState extends State<ManyToManyCallPage> {
+  final CallHelper callHelper = CallHelper();
   bool _micEnabled = false;
   bool _cameraEnabled = false;
   bool _useFrontCamera = true;
+  bool _initialTextureUpdating = true;
   int _onlineUsersCount = 1;
+  String _loudestStreamID = '';
 
-  late int _previewViewID;
-  late Widget _previewViewWidget;
+  late int _localViewID; // local textureID
+  late Texture _localViewWidget; // local texture
+  late String _localStreamID; // local streamID
+  late ZegoStream _localStream = ZegoStream(
+    ZegoUser(
+      widget.userID,
+      widget.username.isNotEmpty ? widget.username : 'Anonym',
+    ),
+    _localStreamID,
+    '',
+  );
 
-  late String _myStreamID;
+  List<int> _remoteViewIDs = []; // textureIDs
+  List<Texture> _remoteTextureList = []; // video textures
+  List<ZegoStream> _remoteStreams = []; // streams with video
+  List<VideoModel> _videoModelList = []; // video models with video
+  List<VideoModel> _disabledVideoModelList = []; // video models without video
 
-  List<int> _remoteViewIDs = [];
-  List<Texture> _remoteTextureList = [];
-
-  List<ZegoStream> _remoteStreams = [];
-  List<VideoModel> _videoModelList = [];
-
-  List<VideoModel> _disabledVideoModelList = [];
+  VideoModel? _loudestEnabledVideoModel;
+  VideoModel? _loudestDisabledVideoModel;
 
   @override
   void initState() {
     createEngine();
     eventHandler();
     createUserAndLoginRoom();
+    startSoundLevelMonitor();
     super.initState();
   }
 
@@ -82,11 +97,15 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       /// commented because I use TextureRenderer object for rendering the preview
       // enablePlatformView: true,
     );
+
     await ZegoExpressEngine.createEngineWithProfile(profile);
   }
 
   Future<void> createUserAndLoginRoom() async {
-    ZegoUser user = ZegoUser.id(widget.userID);
+    ZegoUser user = ZegoUser(
+      widget.userID,
+      widget.username.isNotEmpty ? widget.username : 'Anonym',
+    );
 
     /// Set the token
     ZegoRoomConfig config = ZegoRoomConfig.defaultConfig();
@@ -95,11 +114,11 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     /// To receive the onRoomUserUpdate callback, you must set the isUserStatusNotify property of the room configuration parameter ZegoRoomConfig to true when you call the loginRoom method to log in to a room.
     config.isUserStatusNotify = true;
 
-    final UserSettingsManager userSettingsManager = UserSettingsManager();
+    // final UserSettingsManager userSettingsManager = UserSettingsManager();
 
-    userSettingsManager.useAEC();
-    userSettingsManager.useAGC();
-    userSettingsManager.useANS();
+    // userSettingsManager.useAEC();
+    // userSettingsManager.useAGC();
+    // userSettingsManager.useANS();
 
     await ZegoExpressEngine.instance.loginRoom(
       widget.roomID,
@@ -135,7 +154,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
         for (var model in _videoModelList) {
           for (var stream in streamList) {
-            if (model.stream?.streamID == stream.streamID) {
+            if (model.stream.streamID == stream.streamID) {
               deletedViewIDs.add(model.viewID!);
               deletedStreams.add(stream);
             } else {
@@ -146,7 +165,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
         for (var model in _disabledVideoModelList) {
           for (var stream in streamList) {
-            if (model.stream?.streamID == stream.streamID) {
+            if (model.stream.streamID == stream.streamID) {
               if (model.viewID != null) {
                 deletedViewIDs.add(model.viewID!);
               }
@@ -190,6 +209,9 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _remoteTextureList.clear();
         _remoteTextureList.addAll(availableTextures);
 
+        _loudestEnabledVideoModel = null;
+        _loudestDisabledVideoModel = null;
+
         log('=======================================');
         log('_videoModelList = ${_videoModelList.length}');
         log('_remoteViewIDs = ${_remoteViewIDs.length}');
@@ -211,8 +233,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         List<VideoModel> disabledVideoModels = [];
 
         for (var model in _disabledVideoModelList) {
-          if (model.stream?.streamID == streamID) {
-            newEnabledStream = model.stream!;
+          if (model.stream.streamID == streamID) {
+            newEnabledStream = model.stream;
           } else {
             disabledVideoModels.add(model);
           }
@@ -220,6 +242,9 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
         _disabledVideoModelList.clear();
         _disabledVideoModelList.addAll(disabledVideoModels);
+
+        _loudestEnabledVideoModel = null;
+        _loudestDisabledVideoModel = null;
 
         playRemoteStreams(<ZegoStream>[newEnabledStream]);
       }
@@ -234,18 +259,20 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         List<ZegoStream> enabledStreams = [];
 
         for (var model in _videoModelList) {
-          if (model.stream?.streamID == streamID) {
+          if (model.stream.streamID == streamID) {
             disabledViewID = model.viewID!;
             disabledVideoModel = model;
           } else {
-            enabledStreams.add(model.stream!);
+            enabledStreams.add(model.stream);
             enabledVideoModels.add(model);
           }
         }
 
         _remoteStreams.clear();
         _remoteStreams.addAll(enabledStreams);
-        _disabledVideoModelList.add(disabledVideoModel);
+        _disabledVideoModelList.add(VideoModel(
+          stream: disabledVideoModel.stream,
+        ));
 
         _videoModelList.clear();
         _videoModelList.addAll(enabledVideoModels);
@@ -262,6 +289,9 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         ZegoExpressEngine.instance.destroyTextureRenderer(disabledViewID);
         _remoteViewIDs.remove(disabledViewID);
 
+        _loudestEnabledVideoModel = null;
+        _loudestDisabledVideoModel = null;
+
         setState(() {});
       }
     };
@@ -270,52 +300,92 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     ZegoExpressEngine.onRoomUserUpdate = (roomID, updateType, userList) async {
       if (updateType == ZegoUpdateType.Add) {
         _onlineUsersCount += userList.length;
-        log('onRoomUserUpdate count => $_onlineUsersCount');
+        log(name: 'Number of other users in the room', 'onRoomUserUpdate => $_onlineUsersCount');
       } else {
         _onlineUsersCount -= userList.length;
-        log('onRoomUserUpdate count => $_onlineUsersCount');
+        log(name: 'Number of other users in the room', 'onRoomUserUpdate => $_onlineUsersCount');
       }
 
-      updateTexturesSize();
+      /// Update textures size.
+      if (_initialTextureUpdating || (_onlineUsersCount >= 2 && _onlineUsersCount <= 5)) {
+        callHelper.updateTexturesSize(
+          context: context,
+          onlineUsersCount: _onlineUsersCount,
+          remoteViewIDs: _remoteViewIDs,
+          localViewID: _localViewID,
+        );
+
+        _initialTextureUpdating = false;
+      }
+
       setState(() {});
     };
-  }
 
-  void updateTexturesSize() {
-    if (_onlineUsersCount == 2 || _onlineUsersCount == 3 || _onlineUsersCount == 6) {
-      final Size size = _getVideoCardSize(userCount: _onlineUsersCount);
-      log('updateTextureRendererSize START');
+    /// The remote playing streams audio sound level callback.
+    ZegoExpressEngine.onRemoteSoundLevelUpdate = (soundLevelInfos) {
+      double soundLevel = 10.0;
+      String loudestStreamID = '';
 
-      for (var viewID in _remoteViewIDs) {
-        ZegoExpressEngine.instance.updateTextureRendererSize(
-          viewID,
-          size.width.toInt(),
-          size.height.toInt(),
-        );
+      soundLevelInfos.forEach((k, v) {
+        if (v > soundLevel) {
+          soundLevel = v;
+          loudestStreamID = k;
+          print(v);
+          print(loudestStreamID);
+          print(_loudestStreamID != loudestStreamID);
+        }
+      });
+
+      if (loudestStreamID.isNotEmpty && _loudestStreamID != loudestStreamID) {
+        bool streamFonded = false;
+
+        for (VideoModel model in _videoModelList) {
+          _loudestEnabledVideoModel = null;
+          _loudestDisabledVideoModel = null;
+
+          if (model.stream.streamID == loudestStreamID) {
+            streamFonded = true;
+            _loudestEnabledVideoModel = model;
+            _loudestDisabledVideoModel = null;
+          }
+        }
+
+        if (streamFonded == false) {
+          for (VideoModel model in _disabledVideoModelList) {
+            if (model.stream.streamID == loudestStreamID) {
+              streamFonded = true;
+              _loudestDisabledVideoModel = model;
+              _loudestEnabledVideoModel = null;
+            }
+          }
+        }
+
+        if (streamFonded) {
+          setState(() {
+            _loudestStreamID = loudestStreamID;
+          });
+
+          log(name: 'loudest stream ID', 'onRemoteSoundLevelUpdate: loudest stream ID = $loudestStreamID');
+        }
       }
-
-      ZegoExpressEngine.instance.updateTextureRendererSize(
-        _previewViewID,
-        size.width.toInt(),
-        size.height.toInt(),
-      );
-
-      log('updateTextureRendererSize END');
-    }
+    };
   }
 
   /// Method 1: Using TextureRenderer (the default method)
   Future<void> createPreviewRenderer() async {
-    final Size size = _getVideoCardSize(userCount: _onlineUsersCount);
+    final Size size = getVideoCardSize(
+      context: context,
+      userCount: _onlineUsersCount,
+    );
 
     await ZegoExpressEngine.instance.createTextureRenderer(size.width.toInt(), size.height.toInt()).then((textureID) {
-      _previewViewID = textureID;
+      _localViewID = textureID;
 
       setState(() {
         // Create a Texture Widget
-        Widget previewViewWidget = Texture(textureId: textureID);
+        Texture previewViewWidget = Texture(textureId: textureID);
         // Add this Widget to the layertree for displaying the view of video preview.
-        _previewViewWidget = previewViewWidget;
+        _localViewWidget = previewViewWidget;
       });
     });
   }
@@ -329,22 +399,25 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   Future<void> publishStream() async {
     /// streamID must be globally unique within the scope of the AppID. If different streams are published with the same streamID, the ones that are published after the first one will fail.
     setState(() {
-      _myStreamID = DateTime.now().millisecondsSinceEpoch.toString();
+      _localStreamID = DateTime.now().millisecondsSinceEpoch.toString();
     });
 
     /// Disable camera and mute microphone before [startPublishingStream]
     await ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
     await ZegoExpressEngine.instance.muteMicrophone(!_micEnabled);
-    log("muteMicrophone => ${!_micEnabled}");
-    log("enableCamera => $_cameraEnabled");
+    log('muteMicrophone => ${!_micEnabled}');
+    log('enableCamera => $_cameraEnabled');
 
     // await ZegoExpressEngine.instance.setVideoMirrorMode(ZegoVideoMirrorMode.OnlyPreviewMirror);
-    await ZegoExpressEngine.instance.startPublishingStream(_myStreamID);
-    log("startPublishingStream");
+    await ZegoExpressEngine.instance.startPublishingStream(_localStreamID);
+    log('startPublishingStream');
   }
 
   Future<void> playRemoteStreams(List<ZegoStream> streamList) async {
-    final Size size = _getVideoCardSize(userCount: _onlineUsersCount);
+    final Size size = getVideoCardSize(
+      context: context,
+      userCount: _onlineUsersCount,
+    );
 
     for (var stream in streamList) {
       ZegoExpressEngine.instance.createTextureRenderer(size.width.toInt(), size.height.toInt()).then((viewID) {
@@ -358,6 +431,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           VideoModel(
             stream: stream,
             viewID: viewID,
+            texture: Texture(textureId: viewID),
           ),
         );
 
@@ -368,68 +442,69 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     setState(() {});
   }
 
+  void startSoundLevelMonitor() {
+    ZegoExpressEngine.instance.startSoundLevelMonitor(
+      config: ZegoSoundLevelConfig(1000, false),
+    );
+  }
+
   Future<void> _startPlayingStream(int viewID, String streamID) async {
     ZegoCanvas canvas = ZegoCanvas(viewID, backgroundColor: 0x444444, viewMode: ZegoViewMode.AspectFill);
     await ZegoExpressEngine.instance.startPlayingStream(streamID, canvas: canvas);
   }
 
-  Size _getVideoCardSize({required int userCount}) {
-    final Size availableSize = MediaQuery.of(context).size;
+  List<VideoModel> _rowViewList() {
+    late VideoModel localVideoModel;
 
-    if (userCount >= 3 && userCount <= 4) {
-      return Size(
-        (availableSize.width - 40 - 10) / 2,
-        (availableSize.height - 85 - 60 - 10) / 2,
+    if (_cameraEnabled) {
+      localVideoModel = VideoModel(
+        stream: _localStream,
+        texture: _localViewWidget,
+        viewID: _localViewID,
+      );
+    } else {
+      localVideoModel = VideoModel(
+        stream: _localStream,
+        texture: null,
+        viewID: null,
       );
     }
 
-    if (userCount > 4) {
-      return Size(
-        (availableSize.width - 40 - 10) / 2,
-        (availableSize.height - 85 - 60 - 20) / 3,
-      );
-    }
+    List<VideoModel> list = [localVideoModel];
 
-    return Size(
-      (availableSize.width - 40),
-      (availableSize.height - 85 - 60 - 10) / 2,
-    );
-  }
+    if (_loudestEnabledVideoModel != null) {
+      list.add(_loudestEnabledVideoModel!);
 
-  List _rowViewList() {
-    final Size size = _getVideoCardSize(userCount: _onlineUsersCount);
-    List<Widget> list = [_cameraEnabled ? _previewViewWidget : LocalVideoDisabled(size: size)];
+      List<VideoModel> temp = [];
 
-    list.addAll(_remoteTextureList);
-    final listLength = list.length;
-
-    if (listLength < _onlineUsersCount) {
-      for (var i = 0; i < (_onlineUsersCount - listLength); i++) {
-        list.add(RemoteVideoDisabled(size: size));
+      for (var model in _videoModelList) {
+        if (model.stream.streamID != _loudestEnabledVideoModel!.stream.streamID) {
+          temp.add(model);
+        }
       }
-    }
 
-    if (_onlineUsersCount > 6) {
-      final List<Widget> newList = list.take(5).toList();
+      list.addAll(temp);
+      list.addAll(_disabledVideoModelList);
+    } else if (_loudestDisabledVideoModel != null) {
+      list.add(_loudestDisabledVideoModel!);
 
-      newList.add(
-        Container(
-          width: size.width,
-          height: size.height,
-          color: const Color(0xFF444444),
-          child: Center(
-            child: Text(
-              '+${list.length - 5}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 64,
-              ),
-            ),
-          ),
-        ),
-      );
+      List<VideoModel> temp = [];
 
-      return newList;
+      for (var model in _disabledVideoModelList) {
+        if (model.stream.streamID != _loudestDisabledVideoModel!.stream.streamID) {
+          temp.add(model);
+        }
+      }
+
+      list.addAll(_videoModelList);
+      list.addAll(temp);
+    } else {
+      for (var model in _videoModelList) {
+        list.add(model);
+      }
+      for (var model in _disabledVideoModelList) {
+        list.add(model);
+      }
     }
 
     return list;
@@ -437,50 +512,60 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          RowView(
-            list: _rowViewList(),
-            textureSize: _getVideoCardSize(
-              userCount: _onlineUsersCount,
+    return WillPopScope(
+      onWillPop: () async {
+        ZegoExpressEngine.instance.stopPublishingStream();
+        ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
+        ZegoExpressEngine.instance.logoutRoom(widget.roomID);
+        ZegoExpressEngine.destroyEngine();
+        return true;
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            RowView(
+              videoModels: _rowViewList(),
+              textureSize: getVideoCardSize(
+                context: context,
+                userCount: _onlineUsersCount,
+              ),
             ),
-          ),
-          OnlineUsersCounter(
-            onlineUsersCount: _onlineUsersCount,
-          ),
-          Toolbar(
-            micEnabled: _micEnabled,
-            cameraEnabled: _cameraEnabled,
-            micButtonPressed: () {
-              ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
-              setState(() {
-                _micEnabled = !_micEnabled;
-              });
-            },
-            callEndButtonPressed: () {
-              ZegoExpressEngine.instance.stopPublishingStream();
-              ZegoExpressEngine.instance.destroyTextureRenderer(_previewViewID);
-              ZegoExpressEngine.instance.logoutRoom(widget.roomID);
-              ZegoExpressEngine.destroyEngine();
-              Navigator.pop(context);
-            },
-            enableCameraButtonPressed: () async {
-              setState(() => _cameraEnabled = !_cameraEnabled);
-              ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
+            OnlineUsersCounter(
+              onlineUsersCount: _onlineUsersCount,
+            ),
+            Toolbar(
+              micEnabled: _micEnabled,
+              cameraEnabled: _cameraEnabled,
+              micButtonPressed: () {
+                ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
+                setState(() {
+                  _micEnabled = !_micEnabled;
+                });
+              },
+              callEndButtonPressed: () {
+                ZegoExpressEngine.instance.stopPublishingStream();
+                ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
+                ZegoExpressEngine.instance.logoutRoom(widget.roomID);
+                ZegoExpressEngine.destroyEngine();
+                Navigator.pop(context);
+              },
+              enableCameraButtonPressed: () async {
+                setState(() => _cameraEnabled = !_cameraEnabled);
+                ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
 
-              if (_cameraEnabled) {
-                await _startPreview(_previewViewID);
-              } else {
-                await ZegoExpressEngine.instance.stopPreview();
-              }
-            },
-            switchCameraButtonPressed: () async {
-              setState(() => _useFrontCamera = !_useFrontCamera);
-              ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
-            },
-          ),
-        ],
+                if (_cameraEnabled) {
+                  await _startPreview(_localViewID);
+                } else {
+                  await ZegoExpressEngine.instance.stopPreview();
+                }
+              },
+              switchCameraButtonPressed: () async {
+                setState(() => _useFrontCamera = !_useFrontCamera);
+                ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
