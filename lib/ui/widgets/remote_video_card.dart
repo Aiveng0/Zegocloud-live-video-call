@@ -1,47 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:zegocloud_live_video_call/ui/pages/many_to_many_call_page.dart';
+import 'package:zegocloud_live_video_call/ui/widgets/remote_video_disabled.dart';
 
 class RemoteVideoCard extends StatelessWidget {
   const RemoteVideoCard({
     Key? key,
-    required this.textureWidget,
     required this.textureSize,
+    required this.videoModel,
   }) : super(key: key);
 
-  final Widget textureWidget;
   final Size textureSize;
+  final VideoModel videoModel;
+
+  _getBody() {
+    if (videoModel.texture != null) {
+      return videoModel.texture;
+    }
+    return RemoteVideoDisabled(
+      size: textureSize,
+      videoModel: videoModel,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        color: Colors.grey,
-        width: textureSize.width,
-        height: textureSize.height,
-        child: textureWidget,
+      child: Stack(
+        children: [
+          SizedBox(
+            width: textureSize.width,
+            height: textureSize.height,
+            child: _getBody(),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 10,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: textureSize.width - 20,
+              ),
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: Colors.black45,
+              ),
+              child: Text(
+                videoModel.stream.user.userName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
-  }
-}
-
-class MyCustomClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    double width = size.width;
-    double height = size.height;
-    double rt = height - width;
-    Path path = Path();
-
-    path.moveTo(0, height - width);
-    path.lineTo(width - rt, height - width);
-    path.lineTo(width - rt, width);
-    path.lineTo(0, width);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
-    return true;
   }
 }
