@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Get the size for the Texture renderer.
 Size getVideoCardSize({
   required int userCount,
   required BuildContext context,

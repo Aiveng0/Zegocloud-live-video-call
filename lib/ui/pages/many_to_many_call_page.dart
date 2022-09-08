@@ -75,33 +75,33 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   @override
   void initState() {
-    createEngine();
-    eventHandler();
-    createUserAndLoginRoom();
-    startSoundLevelMonitor();
+    _createEngine();
+    _eventHandler();
+    _createUserAndLoginRoom();
+    _startSoundLevelMonitor();
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
-    publishStream();
-    createPreviewRenderer();
+    _publishStream();
+    _createPreviewRenderer();
     super.didChangeDependencies();
   }
 
-  Future<void> createEngine() async {
+  Future<void> _createEngine() async {
     ZegoEngineProfile profile = ZegoEngineProfile(
       widget.appID,
       ZegoScenario.General,
       appSign: widget.appSign, // it is null because I use token
-      /// commented because I use TextureRenderer object for rendering the preview
+      /// [enablePlatformView] commented because I use TextureRenderer object for rendering the preview
       // enablePlatformView: true,
     );
 
     await ZegoExpressEngine.createEngineWithProfile(profile);
   }
 
-  Future<void> createUserAndLoginRoom() async {
+  Future<void> _createUserAndLoginRoom() async {
     ZegoUser user = ZegoUser(
       widget.userID,
       widget.username.isNotEmpty ? widget.username : 'Anonym',
@@ -115,7 +115,6 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     config.isUserStatusNotify = true;
 
     // final UserSettingsManager userSettingsManager = UserSettingsManager();
-
     // userSettingsManager.useAEC();
     // userSettingsManager.useAGC();
     // userSettingsManager.useANS();
@@ -127,14 +126,14 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     );
   }
 
-  Future<void> eventHandler() async {
+  Future<void> _eventHandler() async {
     /// The callback triggered when the number of streams published by the other users increases or decreases.
     /// [streamList] it is ONLY updated stream!
     ZegoExpressEngine.onRoomStreamUpdate = (roomID, updateType, streamList, extendedData) async {
       if (updateType == ZegoUpdateType.Add) {
         log('ZegoUpdateType.Add');
 
-        await playRemoteStreams(streamList);
+        await _playRemoteStreams(streamList);
       }
       if (updateType == ZegoUpdateType.Delete) {
         log('ZegoUpdateType.Delete');
@@ -152,8 +151,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         List<VideoModel> availableVideoModel = [];
         List<VideoModel> availableDisabledVideoModel = [];
 
-        for (var model in _videoModelList) {
-          for (var stream in streamList) {
+        for (VideoModel model in _videoModelList) {
+          for (ZegoStream stream in streamList) {
             if (model.stream.streamID == stream.streamID) {
               deletedViewIDs.add(model.viewID!);
               deletedStreams.add(stream);
@@ -163,8 +162,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           }
         }
 
-        for (var model in _disabledVideoModelList) {
-          for (var stream in streamList) {
+        for (VideoModel model in _disabledVideoModelList) {
+          for (ZegoStream stream in streamList) {
             if (model.stream.streamID == stream.streamID) {
               if (model.viewID != null) {
                 deletedViewIDs.add(model.viewID!);
@@ -182,12 +181,12 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _disabledVideoModelList.clear();
         _disabledVideoModelList.addAll(availableDisabledVideoModel);
 
-        for (var stream in deletedStreams) {
+        for (ZegoStream stream in deletedStreams) {
           ZegoExpressEngine.instance.stopPlayingStream(stream.streamID);
 
-          for (var el in _remoteStreams) {
-            if (el.streamID != stream.streamID) {
-              availableStreams.add(el);
+          for (ZegoStream element in _remoteStreams) {
+            if (element.streamID != stream.streamID) {
+              availableStreams.add(element);
             }
           }
         }
@@ -195,11 +194,11 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _remoteStreams.clear();
         _remoteStreams.addAll(availableStreams);
 
-        for (var viewID in deletedViewIDs) {
+        for (int viewID in deletedViewIDs) {
           ZegoExpressEngine.instance.destroyTextureRenderer(viewID);
           _remoteViewIDs.remove(viewID);
 
-          for (var texture in _remoteTextureList) {
+          for (Texture texture in _remoteTextureList) {
             if (texture.textureId != viewID) {
               availableTextures.add(texture);
             }
@@ -232,7 +231,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
         List<VideoModel> disabledVideoModels = [];
 
-        for (var model in _disabledVideoModelList) {
+        for (VideoModel model in _disabledVideoModelList) {
           if (model.stream.streamID == streamID) {
             newEnabledStream = model.stream;
           } else {
@@ -246,7 +245,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _loudestEnabledVideoModel = null;
         _loudestDisabledVideoModel = null;
 
-        playRemoteStreams(<ZegoStream>[newEnabledStream]);
+        _playRemoteStreams(<ZegoStream>[newEnabledStream]);
       }
       if (state == ZegoRemoteDeviceState.Disable) {
         log('ZegoRemoteDeviceState.Disable');
@@ -258,7 +257,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         List<VideoModel> enabledVideoModels = [];
         List<ZegoStream> enabledStreams = [];
 
-        for (var model in _videoModelList) {
+        for (VideoModel model in _videoModelList) {
           if (model.stream.streamID == streamID) {
             disabledViewID = model.viewID!;
             disabledVideoModel = model;
@@ -277,7 +276,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _videoModelList.clear();
         _videoModelList.addAll(enabledVideoModels);
 
-        for (var texture in _remoteTextureList) {
+        for (Texture texture in _remoteTextureList) {
           if (texture.textureId != disabledViewID) {
             enabledTextureList.add(texture);
           }
@@ -330,37 +329,32 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         if (v > soundLevel) {
           soundLevel = v;
           loudestStreamID = k;
-          print(v);
-          print(loudestStreamID);
-          print(_loudestStreamID != loudestStreamID);
         }
       });
 
       if (loudestStreamID.isNotEmpty && _loudestStreamID != loudestStreamID) {
-        bool streamFonded = false;
+        bool loudestStreamFonded = false;
 
         for (VideoModel model in _videoModelList) {
           _loudestEnabledVideoModel = null;
           _loudestDisabledVideoModel = null;
 
           if (model.stream.streamID == loudestStreamID) {
-            streamFonded = true;
+            loudestStreamFonded = true;
             _loudestEnabledVideoModel = model;
-            _loudestDisabledVideoModel = null;
           }
         }
 
-        if (streamFonded == false) {
+        if (!loudestStreamFonded) {
           for (VideoModel model in _disabledVideoModelList) {
             if (model.stream.streamID == loudestStreamID) {
-              streamFonded = true;
+              loudestStreamFonded = true;
               _loudestDisabledVideoModel = model;
-              _loudestEnabledVideoModel = null;
             }
           }
         }
 
-        if (streamFonded) {
+        if (loudestStreamFonded) {
           setState(() {
             _loudestStreamID = loudestStreamID;
           });
@@ -371,8 +365,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     };
   }
 
-  /// Method 1: Using TextureRenderer (the default method)
-  Future<void> createPreviewRenderer() async {
+  /// Using TextureRenderer (the default method).
+  Future<void> _createPreviewRenderer() async {
     final Size size = getVideoCardSize(
       context: context,
       userCount: _onlineUsersCount,
@@ -382,7 +376,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       _localViewID = textureID;
 
       setState(() {
-        // Create a Texture Widget
+        // Create a Texture Widget.
         Texture previewViewWidget = Texture(textureId: textureID);
         // Add this Widget to the layertree for displaying the view of video preview.
         _localViewWidget = previewViewWidget;
@@ -390,15 +384,19 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     });
   }
 
-  ///Method 1: Using TextureRenderer (the default method)
+  /// Using TextureRenderer (the default method). The user can see his own local image by calling this function.
   Future<void> _startPreview(int viewID) async {
+    /// The view used to display the play audio and video stream's image.
     ZegoCanvas previewCanvas = ZegoCanvas(viewID, backgroundColor: 0x444444, viewMode: ZegoViewMode.AspectFill);
     await ZegoExpressEngine.instance.startPreview(canvas: previewCanvas);
   }
 
-  Future<void> publishStream() async {
-    /// streamID must be globally unique within the scope of the AppID. If different streams are published with the same streamID, the ones that are published after the first one will fail.
+  /// Starts publishing a stream.
+  ///
+  /// Users push their local audio and video streams to the ZEGO RTC server or CDN, and other users in the same room can pull the audio and video streams to watch through the streamID or CDN pull stream address.
+  Future<void> _publishStream() async {
     setState(() {
+      /// streamID must be globally unique within the scope of the AppID. If different streams are published with the same streamID, the ones that are published after the first one will fail.
       _localStreamID = DateTime.now().millisecondsSinceEpoch.toString();
     });
 
@@ -413,13 +411,14 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     log('startPublishingStream');
   }
 
-  Future<void> playRemoteStreams(List<ZegoStream> streamList) async {
+  /// Creates a Texture render and then calls [_startPlayingStream].
+  Future<void> _playRemoteStreams(List<ZegoStream> streamList) async {
     final Size size = getVideoCardSize(
       context: context,
       userCount: _onlineUsersCount,
     );
 
-    for (var stream in streamList) {
+    for (ZegoStream stream in streamList) {
       ZegoExpressEngine.instance.createTextureRenderer(size.width.toInt(), size.height.toInt()).then((viewID) {
         /// Add the Widget you get to the layertree for displaying the view of video preview.
 
@@ -442,13 +441,16 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     setState(() {});
   }
 
-  void startSoundLevelMonitor() {
+  /// Starts sound level monitoring. Support enable some advanced feature.
+  void _startSoundLevelMonitor() {
     ZegoExpressEngine.instance.startSoundLevelMonitor(
       config: ZegoSoundLevelConfig(1000, false),
     );
   }
 
+  /// Starts playing a stream (audio and video streams) from ZEGO RTC server or from third-party CDN.
   Future<void> _startPlayingStream(int viewID, String streamID) async {
+    /// The view used to display the play audio and video stream's image.
     ZegoCanvas canvas = ZegoCanvas(viewID, backgroundColor: 0x444444, viewMode: ZegoViewMode.AspectFill);
     await ZegoExpressEngine.instance.startPlayingStream(streamID, canvas: canvas);
   }
@@ -473,11 +475,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     List<VideoModel> list = [localVideoModel];
 
     if (_loudestEnabledVideoModel != null) {
+      List<VideoModel> temp = [];
       list.add(_loudestEnabledVideoModel!);
 
-      List<VideoModel> temp = [];
-
-      for (var model in _videoModelList) {
+      for (VideoModel model in _videoModelList) {
         if (model.stream.streamID != _loudestEnabledVideoModel!.stream.streamID) {
           temp.add(model);
         }
@@ -486,11 +487,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       list.addAll(temp);
       list.addAll(_disabledVideoModelList);
     } else if (_loudestDisabledVideoModel != null) {
+      List<VideoModel> temp = [];
       list.add(_loudestDisabledVideoModel!);
 
-      List<VideoModel> temp = [];
-
-      for (var model in _disabledVideoModelList) {
+      for (VideoModel model in _disabledVideoModelList) {
         if (model.stream.streamID != _loudestDisabledVideoModel!.stream.streamID) {
           temp.add(model);
         }
@@ -499,10 +499,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       list.addAll(_videoModelList);
       list.addAll(temp);
     } else {
-      for (var model in _videoModelList) {
+      for (VideoModel model in _videoModelList) {
         list.add(model);
       }
-      for (var model in _disabledVideoModelList) {
+      for (VideoModel model in _disabledVideoModelList) {
         list.add(model);
       }
     }
@@ -510,14 +510,18 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     return list;
   }
 
+  void _callEndButtonPressed() {
+    ZegoExpressEngine.instance.stopPublishingStream();
+    ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
+    ZegoExpressEngine.instance.logoutRoom(widget.roomID);
+    ZegoExpressEngine.destroyEngine();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        ZegoExpressEngine.instance.stopPublishingStream();
-        ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
-        ZegoExpressEngine.instance.logoutRoom(widget.roomID);
-        ZegoExpressEngine.destroyEngine();
+        _callEndButtonPressed();
         return true;
       },
       child: Scaffold(
@@ -538,15 +542,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
               cameraEnabled: _cameraEnabled,
               micButtonPressed: () {
                 ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
-                setState(() {
-                  _micEnabled = !_micEnabled;
-                });
+                setState(() => _micEnabled = !_micEnabled);
               },
               callEndButtonPressed: () {
-                ZegoExpressEngine.instance.stopPublishingStream();
-                ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
-                ZegoExpressEngine.instance.logoutRoom(widget.roomID);
-                ZegoExpressEngine.destroyEngine();
+                _callEndButtonPressed();
                 Navigator.pop(context);
               },
               enableCameraButtonPressed: () async {
