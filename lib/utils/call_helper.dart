@@ -5,6 +5,7 @@ import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:zegocloud_live_video_call/utils/texture_size_helper.dart';
 
 class CallHelper {
+  /// Update the size of the Texture renderer.
   Future<void> updateTexturesSize({
     required BuildContext context,
     required int onlineUsersCount,

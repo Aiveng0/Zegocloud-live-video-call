@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class Toolbar extends StatefulWidget {
+  /// Row with control buttons:
+  ///
+  /// Turn on/off the microphone, turn on/off the camera, switch the camera, exit the call.
   const Toolbar({
     Key? key,
     required this.micEnabled,
@@ -32,52 +35,61 @@ class _ToolbarState extends State<Toolbar> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(10),
-              primary: Colors.blueAccent,
-            ),
+          _ToolbarButton(
             onPressed: widget.micButtonPressed,
-            child: Icon(
-              widget.micEnabled ? Icons.mic : Icons.mic_off,
-            ),
+            icon: widget.micEnabled ? Icons.mic : Icons.mic_off,
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(10),
-              primary: Colors.red,
-            ),
+          _ToolbarButton(
             onPressed: widget.callEndButtonPressed,
-            child: const Icon(
-              Icons.call_end,
-              size: 32,
-            ),
+            icon: Icons.call_end,
+            iconSize: 32,
+            color: Colors.red,
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(10),
-              primary: Colors.blueAccent,
-            ),
+          _ToolbarButton(
             onPressed: widget.enableCameraButtonPressed,
-            child: Icon(
-              widget.cameraEnabled ? Icons.videocam : Icons.videocam_off,
-            ),
+            icon: widget.cameraEnabled ? Icons.videocam : Icons.videocam_off,
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(10),
-              primary: Colors.blueAccent,
-            ),
+          _ToolbarButton(
             onPressed: widget.switchCameraButtonPressed,
-            child: const Icon(
-              Icons.switch_camera,
-            ),
+            icon: Icons.switch_camera,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ToolbarButton extends StatefulWidget {
+  const _ToolbarButton({
+    Key? key,
+    required this.onPressed,
+    required this.icon,
+    this.color,
+    this.iconSize,
+  }) : super(key: key);
+
+  final void Function()? onPressed;
+  final Color? color;
+  final IconData icon;
+  final double? iconSize;
+
+  @override
+  State<_ToolbarButton> createState() => _ToolbarButtonState();
+}
+
+class _ToolbarButtonState extends State<_ToolbarButton> {
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(10),
+        primary: widget.color ?? Colors.blueAccent,
+      ),
+      onPressed: widget.onPressed,
+      child: Icon(
+        widget.icon,
+        size: widget.iconSize,
       ),
     );
   }
