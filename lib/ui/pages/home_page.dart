@@ -188,6 +188,8 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     await requestPermission();
 
+                    final Size size = MediaQuery.of(context).size;
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -198,6 +200,7 @@ class _HomePageState extends State<HomePage> {
                           appID: settings.appID,
                           token: _tokenController.text,
                           username: _usernameController.text,
+                          screenSize: size,
                         ),
                       ),
                     );

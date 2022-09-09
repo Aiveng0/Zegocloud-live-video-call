@@ -13,7 +13,7 @@ class CallHelper {
     required int localViewID,
   }) async {
     final Size size = getVideoCardSize(
-      context: context,
+      screenSize: MediaQuery.of(context).size,
       userCount: onlineUsersCount,
     );
 
