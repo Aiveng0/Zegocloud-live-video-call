@@ -18,6 +18,7 @@ class ManyToManyCallPage extends StatefulWidget {
     required this.appSign,
     required this.appID,
     required this.token,
+    required this.screenSize,
     this.username = 'Anonym',
   }) : super(key: key);
 
@@ -27,6 +28,7 @@ class ManyToManyCallPage extends StatefulWidget {
   final String token;
   final int appID;
   final String username;
+  final Size screenSize;
 
   @override
   State<ManyToManyCallPage> createState() => _VideoCallPageState();
@@ -79,14 +81,9 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     _eventHandler();
     _createUserAndLoginRoom();
     _startSoundLevelMonitor();
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
     _publishStream();
     _createPreviewRenderer();
-    super.didChangeDependencies();
+    super.initState();
   }
 
   Future<void> _createEngine() async {
@@ -306,7 +303,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       }
 
       /// Update textures size.
-      if (_initialTextureUpdating || (_onlineUsersCount >= 2 && _onlineUsersCount <= 5)) {
+      if (_initialTextureUpdating || (_onlineUsersCount >= 1 && _onlineUsersCount <= 5)) {
         callHelper.updateTexturesSize(
           context: context,
           onlineUsersCount: _onlineUsersCount,
@@ -368,7 +365,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   /// Using TextureRenderer (the default method).
   Future<void> _createPreviewRenderer() async {
     final Size size = getVideoCardSize(
-      context: context,
+      screenSize: widget.screenSize,
       userCount: _onlineUsersCount,
     );
 
@@ -376,9 +373,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       _localViewID = textureID;
 
       setState(() {
-        // Create a Texture Widget.
+        /// Create a Texture Widget.
         Texture previewViewWidget = Texture(textureId: textureID);
-        // Add this Widget to the layertree for displaying the view of video preview.
+
+        /// Add this Widget to the layertree for displaying the view of video preview.
         _localViewWidget = previewViewWidget;
       });
     });
@@ -406,6 +404,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     log('muteMicrophone => ${!_micEnabled}');
     log('enableCamera => $_cameraEnabled');
 
+    /// Sets up the video configurations.
+    ZegoVideoConfig videoConfig = ZegoVideoConfig(720, 1280, 720, 1280, 30, 1500, ZegoVideoCodecID.Default);
+    await ZegoExpressEngine.instance.setVideoConfig(videoConfig);
+
     // await ZegoExpressEngine.instance.setVideoMirrorMode(ZegoVideoMirrorMode.OnlyPreviewMirror);
     await ZegoExpressEngine.instance.startPublishingStream(_localStreamID);
     log('startPublishingStream');
@@ -414,7 +416,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   /// Creates a Texture render and then calls [_startPlayingStream].
   Future<void> _playRemoteStreams(List<ZegoStream> streamList) async {
     final Size size = getVideoCardSize(
-      context: context,
+      screenSize: widget.screenSize,
       userCount: _onlineUsersCount,
     );
 
@@ -530,7 +532,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
             RowView(
               videoModels: _rowViewList(),
               textureSize: getVideoCardSize(
-                context: context,
+                screenSize: widget.screenSize,
                 userCount: _onlineUsersCount,
               ),
             ),
