@@ -22,6 +22,14 @@ class RemoteVideoCard extends StatelessWidget {
     );
   }
 
+  IconData _getMicIcon(bool micEnabled) {
+    if (micEnabled) {
+      return Icons.mic_none;
+    }
+
+    return Icons.mic_off;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -52,6 +60,23 @@ class RemoteVideoCard extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                 ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black38,
+              ),
+              child: Icon(
+                _getMicIcon(
+                  videoModel.micEnabled,
+                ),
+                color: Colors.white,
               ),
             ),
           ),

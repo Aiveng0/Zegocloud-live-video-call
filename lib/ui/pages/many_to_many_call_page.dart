@@ -34,15 +34,24 @@ class ManyToManyCallPage extends StatefulWidget {
   State<ManyToManyCallPage> createState() => _VideoCallPageState();
 }
 
+/// Video model.
+///
+/// - [stream] - ZegoStream object.
+/// - [viewID] - The identity of the backend texture.
+/// - [texture] - [Texture] widget identified by [viewID] (textureId).
+/// - [micEnabled] - State of the user's microphone (true/false).
+/// The default value is [true] because when you join a room, the [onRemoteMicStateUpdate] callback does not work with the [ZegoRemoteDeviceState.Open] event.
 class VideoModel {
   VideoModel({
     required this.stream,
     this.viewID,
     this.texture,
+    this.micEnabled = true,
   });
   ZegoStream stream;
   int? viewID;
   Texture? texture;
+  bool micEnabled;
 }
 
 class _VideoCallPageState extends State<ManyToManyCallPage> {
@@ -222,15 +231,15 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     /// The callback triggered when the state of the remote camera changes.
     ZegoExpressEngine.onRemoteCameraStateUpdate = (streamID, state) async {
       if (state == ZegoRemoteDeviceState.Open) {
-        log('ZegoRemoteDeviceState.Open');
+        log(name: 'onRemoteCameraStateUpdate', 'ZegoRemoteDeviceState.Open');
 
-        late ZegoStream newEnabledStream;
+        late VideoModel newVideoModel;
 
         List<VideoModel> disabledVideoModels = [];
 
         for (VideoModel model in _disabledVideoModelList) {
           if (model.stream.streamID == streamID) {
-            newEnabledStream = model.stream;
+            newVideoModel = model;
           } else {
             disabledVideoModels.add(model);
           }
@@ -242,10 +251,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _loudestEnabledVideoModel = null;
         _loudestDisabledVideoModel = null;
 
-        _playRemoteStreams(<ZegoStream>[newEnabledStream]);
+        _playRemoteStreamsFromVideoModel(<VideoModel>[newVideoModel]);
       }
       if (state == ZegoRemoteDeviceState.Disable) {
-        log('ZegoRemoteDeviceState.Disable');
+        log(name: 'onRemoteCameraStateUpdate', 'ZegoRemoteDeviceState.Disable');
 
         late int disabledViewID;
         late VideoModel disabledVideoModel;
@@ -268,6 +277,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _remoteStreams.addAll(enabledStreams);
         _disabledVideoModelList.add(VideoModel(
           stream: disabledVideoModel.stream,
+          micEnabled: disabledVideoModel.micEnabled,
         ));
 
         _videoModelList.clear();
@@ -289,6 +299,24 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         _loudestDisabledVideoModel = null;
 
         setState(() {});
+      }
+    };
+
+    /// The callback triggered when the state of the remote microphone changes.
+    ZegoExpressEngine.onRemoteMicStateUpdate = (streamID, state) async {
+      if (state == ZegoRemoteDeviceState.Open) {
+        log(name: 'onRemoteMicStateUpdate', 'ZegoRemoteDeviceState.Open');
+
+        _onRemoteMicStateUpdateCallback(
+          streamID: streamID,
+        );
+      }
+      if (state == ZegoRemoteDeviceState.Mute) {
+        log(name: 'onRemoteMicStateUpdate', 'ZegoRemoteDeviceState.Mute');
+
+        _onRemoteMicStateUpdateCallback(
+          streamID: streamID,
+        );
       }
     };
 
@@ -443,6 +471,68 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     setState(() {});
   }
 
+  /// Creates a Texture render and then calls [_startPlayingStream].
+  Future<void> _playRemoteStreamsFromVideoModel(List<VideoModel> videoModelList) async {
+    final Size size = getVideoCardSize(
+      screenSize: widget.screenSize,
+      userCount: _onlineUsersCount,
+    );
+
+    for (VideoModel model in videoModelList) {
+      ZegoExpressEngine.instance.createTextureRenderer(size.width.toInt(), size.height.toInt()).then((viewID) {
+        /// Add the Widget you get to the layertree for displaying the view of video preview.
+
+        _remoteViewIDs.add(viewID);
+        _remoteStreams.add(model.stream);
+        _remoteTextureList.add(Texture(textureId: viewID));
+
+        _videoModelList.add(
+          VideoModel(
+            stream: model.stream,
+            viewID: viewID,
+            texture: Texture(textureId: viewID),
+            micEnabled: model.micEnabled,
+          ),
+        );
+
+        _startPlayingStream(viewID, model.stream.streamID);
+      });
+    }
+
+    setState(() {});
+  }
+
+  /// Toggles the value of [VideoModel.micEnabled] for a model with the same [streamID] in [_videoModelList] or [_disabledVideoModelList] and then calls [setState].
+  void _onRemoteMicStateUpdateCallback({
+    required String streamID,
+  }) {
+    for (var i = 0; i < _videoModelList.length; i++) {
+      if (_videoModelList[i].stream.streamID == streamID) {
+        final VideoModel temp = _videoModelList[i];
+        _videoModelList[i] = VideoModel(
+          stream: temp.stream,
+          texture: temp.texture,
+          viewID: temp.viewID,
+          micEnabled: !temp.micEnabled,
+        );
+      }
+    }
+
+    for (var i = 0; i < _disabledVideoModelList.length; i++) {
+      if (_disabledVideoModelList[i].stream.streamID == streamID) {
+        final VideoModel temp = _disabledVideoModelList[i];
+        _disabledVideoModelList[i] = VideoModel(
+          stream: temp.stream,
+          texture: temp.texture,
+          viewID: temp.viewID,
+          micEnabled: !temp.micEnabled,
+        );
+      }
+    }
+
+    setState(() {});
+  }
+
   /// Starts sound level monitoring. Support enable some advanced feature.
   void _startSoundLevelMonitor() {
     ZegoExpressEngine.instance.startSoundLevelMonitor(
@@ -465,12 +555,14 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         stream: _localStream,
         texture: _localViewWidget,
         viewID: _localViewID,
+        micEnabled: _micEnabled,
       );
     } else {
       localVideoModel = VideoModel(
         stream: _localStream,
         texture: null,
         viewID: null,
+        micEnabled: _micEnabled,
       );
     }
 
