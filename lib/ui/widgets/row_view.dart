@@ -14,7 +14,7 @@ class RowView extends StatelessWidget {
 
   List<Widget> _getCards() {
     List<Widget> list = [];
-    
+
     if (videoModels.length > 6) {
       list = List.generate(
         5,
@@ -31,7 +31,7 @@ class RowView extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFF444444),
+            color: const Color(0xFF3c4043),
           ),
           width: textureSize.width,
           height: textureSize.height,
@@ -71,7 +71,7 @@ class RowView extends StatelessWidget {
         top: 45,
         bottom: 100,
       ),
-      color: const Color(0xFF222222),
+      color: const Color(0xFF202124),
       child: Wrap(
         spacing: 10,
         runSpacing: 10,

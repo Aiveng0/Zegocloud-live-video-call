@@ -18,7 +18,7 @@ class LocalVideoDisabled extends StatelessWidget {
         Container(
           width: size.width,
           height: size.height,
-          color: const Color(0xFF444444),
+          color: const Color(0xFF3c4043),
           child: const Icon(
             Icons.videocam_off,
             size: 40,

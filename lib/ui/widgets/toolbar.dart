@@ -38,16 +38,18 @@ class _ToolbarState extends State<Toolbar> {
           _ToolbarButton(
             onPressed: widget.micButtonPressed,
             icon: widget.micEnabled ? Icons.mic : Icons.mic_off,
+            color: widget.micEnabled ? const Color(0xFF3c4043) : const Color(0xFFea4335),
           ),
           _ToolbarButton(
             onPressed: widget.callEndButtonPressed,
             icon: Icons.call_end,
             iconSize: 32,
-            color: Colors.red,
+            color: const Color(0xFFea4335),
           ),
           _ToolbarButton(
             onPressed: widget.enableCameraButtonPressed,
             icon: widget.cameraEnabled ? Icons.videocam : Icons.videocam_off,
+            color: widget.cameraEnabled ? const Color(0xFF3c4043) : const Color(0xFFea4335),
           ),
           _ToolbarButton(
             onPressed: widget.switchCameraButtonPressed,
@@ -84,7 +86,7 @@ class _ToolbarButtonState extends State<_ToolbarButton> {
       style: ElevatedButton.styleFrom(
         shape: const CircleBorder(),
         padding: const EdgeInsets.all(10),
-        primary: widget.color ?? Colors.blueAccent,
+        backgroundColor: widget.color ?? const Color(0xFF3c4043),
       ),
       onPressed: widget.onPressed,
       child: Icon(

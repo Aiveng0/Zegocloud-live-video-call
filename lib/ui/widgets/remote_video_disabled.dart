@@ -18,7 +18,7 @@ class RemoteVideoDisabled extends StatelessWidget {
         Container(
           width: size.width,
           height: size.height,
-          color: const Color(0xFF444444),
+          color: const Color(0xFF3c4043),
           child: const Icon(
             Icons.account_circle,
             size: 60,

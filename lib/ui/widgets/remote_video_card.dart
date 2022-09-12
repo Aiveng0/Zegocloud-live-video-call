@@ -24,7 +24,7 @@ class RemoteVideoCard extends StatelessWidget {
 
   IconData _getMicIcon(bool micEnabled) {
     if (micEnabled) {
-      return Icons.mic_none;
+      return Icons.mic;
     }
 
     return Icons.mic_off;
@@ -51,7 +51,7 @@ class RemoteVideoCard extends StatelessWidget {
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                color: Colors.black45,
+                color: Colors.black38,
               ),
               child: Text(
                 videoModel.stream.user.userName,
@@ -67,7 +67,7 @@ class RemoteVideoCard extends StatelessWidget {
             top: 10,
             right: 10,
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(5),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.black38,
@@ -77,6 +77,7 @@ class RemoteVideoCard extends StatelessWidget {
                   videoModel.micEnabled,
                 ),
                 color: Colors.white,
+                size: 19,
               ),
             ),
           ),
