@@ -174,161 +174,181 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
         return true;
       },
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFfafafa),
+          elevation: 0,
+          leading: IconButton(
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.black87,
+            ),
+            onPressed: () {
+              _destroyEngine();
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
         body: GestureDetector(
           onTap: () => _unfocus(context),
-          child: SafeArea(
+          child: ScrollConfiguration(
+            behavior: MyBehavior(),
             child: SingleChildScrollView(
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 1.5,
-                      child: const Text(
-                        'Event name some event name yeah',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Color(0xFF3c4043),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    RemoteVideoCard(
-                      textureSize: Size(
-                        MediaQuery.of(context).size.width / 2.5,
-                        MediaQuery.of(context).size.height / 3,
-                      ),
-                      videoModel: _getVideoModel(),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 38,
-                          child: ToolbarButton(
-                            onPressed: _micButtonPressed,
-                            icon: _micEnabled ? Icons.mic : Icons.mic_off,
-                            color: _micEnabled ? Colors.white : const Color(0xFF3c4043),
-                            iconColor: _micEnabled ? const Color(0xFF3c4043) : Colors.white,
-                            padding: 0,
-                            iconSize: 20,
-                          ),
-                        ),
-                        Container(
-                          width: 38,
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: ToolbarButton(
-                            onPressed: _cameraButtonPressed,
-                            icon: _cameraEnabled ? Icons.videocam : Icons.videocam_off,
-                            color: _cameraEnabled ? Colors.white : const Color(0xFF3c4043),
-                            iconColor: _cameraEnabled ? const Color(0xFF3c4043) : Colors.white,
-                            padding: 0,
-                            iconSize: 20,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 38,
-                          child: ToolbarButton(
-                            onPressed: _switchCameraButtonPressed,
-                            icon: Icons.switch_camera,
-                            iconColor: const Color(0xFF3c4043),
-                            color: Colors.white,
-                            padding: 0,
-                            iconSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 1.5,
-                      child: TestTextField(
-                        controller: _usernameController,
-                        hintText: 'Username',
-                        labelText: 'Username',
-                        maxLength: 30,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    InkWell(
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () async {
-                        final Size size = MediaQuery.of(context).size;
-
-                        await permissionHelper.requestPermission();
-
-                        ZegoExpressEngine.instance.stopPreview();
-                        ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
-
-                        _groupCallPageClosed = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GroupCallPage(
-                              userID: widget.userID,
-                              roomID: widget.roomID,
-                              appSign: null,
-                              appID: settings.appID,
-                              token: widget.token,
-
-                              /// Settings
-                              username: _usernameController.text.isNotEmpty ? _usernameController.text : 'Anonym',
-                              screenSize: size,
-                              cameraEnabled: _cameraEnabled,
-                              micEnabled: _micEnabled,
-                              useFrontCamera: _useFrontCamera,
-                            ),
-                          ),
-                        );
-
-                        if (_groupCallPageClosed) {
-                          ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
-                          ZegoExpressEngine.instance.muteMicrophone(!_micEnabled);
-
-                          await _createPreviewRenderer();
-                          _startPreview(_localViewID);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(
                         width: MediaQuery.of(context).size.width / 1.5,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.blueAccent,
+                        child: const Text(
+                          'Event name some event name yeah',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Color(0xFF3c4043),
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.video_collection_rounded,
-                              color: Colors.white,
+                      ),
+                      const SizedBox(height: 10),
+                      RemoteVideoCard(
+                        textureSize: Size(
+                          MediaQuery.of(context).size.width / 2.5,
+                          MediaQuery.of(context).size.height / 3,
+                        ),
+                        videoModel: _getVideoModel(),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 38,
+                            child: ToolbarButton(
+                              onPressed: _micButtonPressed,
+                              icon: _micEnabled ? Icons.mic : Icons.mic_off,
+                              color: _micEnabled ? Colors.white : const Color(0xFF3c4043),
+                              iconColor: _micEnabled ? const Color(0xFF3c4043) : Colors.white,
+                              padding: 0,
+                              iconSize: 20,
                             ),
-                            const SizedBox(width: 5),
-                            Text(
-                              _groupCallPageClosed ? 'Join a call again' : 'Join a call',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
+                          ),
+                          Container(
+                            width: 38,
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            child: ToolbarButton(
+                              onPressed: _cameraButtonPressed,
+                              icon: _cameraEnabled ? Icons.videocam : Icons.videocam_off,
+                              color: _cameraEnabled ? Colors.white : const Color(0xFF3c4043),
+                              iconColor: _cameraEnabled ? const Color(0xFF3c4043) : Colors.white,
+                              padding: 0,
+                              iconSize: 20,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 38,
+                            child: ToolbarButton(
+                              onPressed: _switchCameraButtonPressed,
+                              icon: Icons.switch_camera,
+                              iconColor: const Color(0xFF3c4043),
+                              color: Colors.white,
+                              padding: 0,
+                              iconSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 1.5,
+                        child: TestTextField(
+                          controller: _usernameController,
+                          hintText: 'Username',
+                          labelText: 'Username',
+                          maxLength: 30,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      InkWell(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap: () async {
+                          final Size size = MediaQuery.of(context).size;
+
+                          await permissionHelper.requestPermission();
+
+                          if (!_initialRender) {
+                            ZegoExpressEngine.instance.stopPreview();
+                            ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
+                          }
+
+                          _groupCallPageClosed = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GroupCallPage(
+                                userID: widget.userID,
+                                roomID: widget.roomID,
+                                appSign: null,
+                                appID: settings.appID,
+                                token: widget.token,
+
+                                /// Settings
+                                username: _usernameController.text.isNotEmpty ? _usernameController.text : 'Anonym',
+                                screenSize: size,
+                                cameraEnabled: _cameraEnabled,
+                                micEnabled: _micEnabled,
+                                useFrontCamera: _useFrontCamera,
                               ),
                             ),
-                          ],
+                          );
+
+                          if (_groupCallPageClosed) {
+                            ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
+                            ZegoExpressEngine.instance.muteMicrophone(!_micEnabled);
+
+                            await _createPreviewRenderer();
+                            _startPreview(_localViewID);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          width: MediaQuery.of(context).size.width / 1.5,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.blueAccent,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.video_collection_rounded,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _groupCallPageClosed ? 'Join a call again' : 'Join a call',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -336,5 +356,12 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
         ),
       ),
     );
+  }
+}
+
+class MyBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+    return child;
   }
 }
