@@ -11,17 +11,17 @@ class PermissionHelper {
 
   /// Request the user for access to microphone permission, if access hasn't already been grant access before.
   Future<void> requestMicPermission() async {
-    PermissionStatus microphoneStatus = await Permission.microphone.request();
-    if (microphoneStatus != PermissionStatus.granted) {
+    PermissionStatus status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
       log(name: 'PermissionHelper', 'Error: Microphone permission not granted!');
     }
   }
 
   /// Request the user for access to camera permission, if access hasn't already been grant access before.
   Future<void> requestCameraPermission() async {
-    PermissionStatus microphoneStatus = await Permission.microphone.request();
-    if (microphoneStatus != PermissionStatus.granted) {
-      log(name: 'PermissionHelper', 'Error: Microphone permission not granted!');
+    PermissionStatus status = await Permission.camera.request();
+    if (status != PermissionStatus.granted) {
+      log(name: 'PermissionHelper', 'Error: Camera permission not granted!');
     }
   }
 }
