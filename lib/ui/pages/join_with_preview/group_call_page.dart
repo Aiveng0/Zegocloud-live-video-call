@@ -11,8 +11,8 @@ import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
 import 'package:zegocloud_live_video_call/utils/call_helper.dart';
 import 'package:zegocloud_live_video_call/utils/texture_size_helper.dart';
 
-class ManyToManyCallPage extends StatefulWidget {
-  const ManyToManyCallPage({
+class GroupCallPage extends StatefulWidget {
+  const GroupCallPage({
     Key? key,
     required this.userID,
     required this.roomID,
@@ -20,7 +20,10 @@ class ManyToManyCallPage extends StatefulWidget {
     required this.appID,
     required this.token,
     required this.screenSize,
-    this.username = 'Anonym',
+    required this.username,
+    required this.micEnabled,
+    required this.cameraEnabled,
+    required this.useFrontCamera,
   }) : super(key: key);
 
   final String userID;
@@ -30,22 +33,25 @@ class ManyToManyCallPage extends StatefulWidget {
   final int appID;
   final String username;
   final Size screenSize;
+  final bool micEnabled;
+  final bool cameraEnabled;
+  final bool useFrontCamera;
 
   @override
-  State<ManyToManyCallPage> createState() => _VideoCallPageState();
+  State<GroupCallPage> createState() => _VideoCallPageState();
 }
 
-class _VideoCallPageState extends State<ManyToManyCallPage> {
+class _VideoCallPageState extends State<GroupCallPage> {
   final CallHelper callHelper = CallHelper();
-  bool _micEnabled = false;
-  bool _cameraEnabled = false;
-  bool _useFrontCamera = true;
+  late bool _micEnabled = widget.micEnabled;
+  late bool _cameraEnabled = widget.cameraEnabled;
+  late bool _useFrontCamera = widget.useFrontCamera;
   bool _initialTextureUpdating = true;
   int _onlineUsersCount = 1;
   String _loudestStreamID = '';
 
   late int _localViewID; // local textureID
-  late Texture _localViewWidget; // local texture
+  Texture? _localViewWidget; // local texture
   late String _localStreamID; // local streamID
   late ZegoStream _localStream = ZegoStream(
     ZegoUser(
@@ -67,25 +73,12 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   @override
   void initState() {
-    _createEngine();
     _eventHandler();
     _createUserAndLoginRoom();
     _startSoundLevelMonitor();
     _publishStream();
     _createPreviewRenderer();
     super.initState();
-  }
-
-  Future<void> _createEngine() async {
-    ZegoEngineProfile profile = ZegoEngineProfile(
-      widget.appID,
-      ZegoScenario.General,
-      appSign: widget.appSign, // it is null because I use token
-      /// [enablePlatformView] commented because I use TextureRenderer object for rendering the preview
-      // enablePlatformView: true,
-    );
-
-    await ZegoExpressEngine.createEngineWithProfile(profile);
   }
 
   Future<void> _createUserAndLoginRoom() async {
@@ -100,11 +93,6 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
     /// To receive the onRoomUserUpdate callback, you must set the isUserStatusNotify property of the room configuration parameter ZegoRoomConfig to true when you call the loginRoom method to log in to a room.
     config.isUserStatusNotify = true;
-
-    // final UserSettingsManager userSettingsManager = UserSettingsManager();
-    // userSettingsManager.useAEC();
-    // userSettingsManager.useAGC();
-    // userSettingsManager.useANS();
 
     await ZegoExpressEngine.instance.loginRoom(
       widget.roomID,
@@ -420,6 +408,11 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     // await ZegoExpressEngine.instance.setVideoMirrorMode(ZegoVideoMirrorMode.OnlyPreviewMirror);
     await ZegoExpressEngine.instance.startPublishingStream(_localStreamID);
     log('startPublishingStream');
+
+    if (_cameraEnabled) {
+      _startPreview(_localViewID);
+      log(name: '_startPreview', '_startPreview');
+    }
   }
 
   /// Creates a Texture render and then calls [_startPlayingStream].
@@ -531,7 +524,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   List<VideoModel> _rowViewList() {
     late VideoModel localVideoModel;
 
-    if (_cameraEnabled) {
+    if (_cameraEnabled && _localViewWidget != null) {
       localVideoModel = VideoModel(
         stream: _localStream,
         texture: _localViewWidget,
@@ -587,9 +580,10 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   void _callEndButtonPressed() {
     ZegoExpressEngine.instance.stopPublishingStream();
-    ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
+    for (int textureID in _remoteViewIDs) {
+      ZegoExpressEngine.instance.destroyTextureRenderer(textureID);
+    }
     ZegoExpressEngine.instance.logoutRoom(widget.roomID);
-    ZegoExpressEngine.destroyEngine();
   }
 
   @override
@@ -597,6 +591,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     return WillPopScope(
       onWillPop: () async {
         _callEndButtonPressed();
+        Navigator.pop(context, true);
         return true;
       },
       child: Scaffold(
@@ -621,7 +616,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
               },
               callEndButtonPressed: () {
                 _callEndButtonPressed();
-                Navigator.pop(context);
+                Navigator.pop(context, true);
               },
               cameraButtonPressed: () async {
                 setState(() => _cameraEnabled = !_cameraEnabled);

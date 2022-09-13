@@ -223,7 +223,7 @@ class _VideoCallPageState extends State<FaceToFaceCallPage> {
                 ZegoExpressEngine.destroyEngine();
                 Navigator.pop(context);
               },
-              enableCameraButtonPressed: () async {
+              cameraButtonPressed: () async {
                 setState(() => _cameraEnabled = !_cameraEnabled);
                 ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
 

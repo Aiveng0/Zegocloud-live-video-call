@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zegocloud_live_video_call/ui/pages/many_to_many_call_page.dart';
+import 'package:zegocloud_live_video_call/models/video_model.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_disabled.dart';
 
 class RemoteVideoCard extends StatelessWidget {
@@ -20,14 +20,6 @@ class RemoteVideoCard extends StatelessWidget {
       size: textureSize,
       videoModel: videoModel,
     );
-  }
-
-  IconData _getMicIcon(bool micEnabled) {
-    if (micEnabled) {
-      return Icons.mic;
-    }
-
-    return Icons.mic_off;
   }
 
   @override
@@ -68,14 +60,12 @@ class RemoteVideoCard extends StatelessWidget {
             right: 10,
             child: Container(
               padding: const EdgeInsets.all(5),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black38,
+                color: videoModel.micEnabled ? Colors.blueAccent : Colors.black38,
               ),
               child: Icon(
-                _getMicIcon(
-                  videoModel.micEnabled,
-                ),
+                videoModel.micEnabled ? Icons.mic : Icons.mic_off,
                 color: Colors.white,
                 size: 19,
               ),

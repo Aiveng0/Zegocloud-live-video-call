@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:zegocloud_live_video_call/ui/pages/join_with_preview/login_room_page.dart';
 import 'package:zegocloud_live_video_call/ui/pages/many_to_many_call_page.dart';
+import 'package:zegocloud_live_video_call/ui/widgets/test_text_field.dart';
+import 'package:zegocloud_live_video_call/utils/permission_helper.dart';
 import 'package:zegocloud_live_video_call/utils/settings.dart' as settings;
 
 class HomePage extends StatefulWidget {
@@ -18,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _roomIDController = TextEditingController(text: '1111');
   final TextEditingController _tokenController = TextEditingController(text: settings.token);
   final TextEditingController _usernameController = TextEditingController();
+  final PermissionHelper permissionHelper = PermissionHelper();
 
   @override
   void dispose() {
@@ -26,18 +27,6 @@ class _HomePageState extends State<HomePage> {
     _tokenController.dispose();
     _usernameController.dispose();
     super.dispose();
-  }
-
-  Future<void> requestPermission() async {
-    PermissionStatus microphoneStatus = await Permission.microphone.request();
-    if (microphoneStatus != PermissionStatus.granted) {
-      log('Error: Microphone permission not granted!!!');
-    }
-
-    PermissionStatus cameraStatus = await Permission.camera.request();
-    if (cameraStatus != PermissionStatus.granted) {
-      log('Error: Camera permission not granted!!!');
-    }
   }
 
   void _unfocus(BuildContext context) {
@@ -60,7 +49,6 @@ class _HomePageState extends State<HomePage> {
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 80),
                 Container(
@@ -75,63 +63,35 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                TextField(
+                TestTextField(
                   controller: _userIDController,
-                  decoration: const InputDecoration(
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1,
-                      ),
-                    ),
-                    hintText: 'User ID',
-                    labelText: 'User ID',
-                  ),
+                  hintText: 'User ID',
+                  labelText: 'User ID',
                 ),
                 const SizedBox(height: 20),
-                TextField(
+                TestTextField(
                   controller: _roomIDController,
-                  decoration: const InputDecoration(
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1,
-                      ),
-                    ),
-                    hintText: 'Room ID',
-                    labelText: 'Room ID',
-                  ),
+                  hintText: 'Room ID',
+                  labelText: 'Room ID',
                 ),
                 const SizedBox(height: 20),
-                TextField(
+                TestTextField(
                   controller: _usernameController,
-                  decoration: const InputDecoration(
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1,
-                      ),
-                    ),
-                    hintText: 'Username',
-                    labelText: 'Username',
-                  ),
+                  hintText: 'Username',
+                  labelText: 'Username',
                   maxLength: 30,
                 ),
                 const SizedBox(height: 20),
                 IgnorePointer(
                   ignoring: true,
-                  child: TextField(
+                  child: TestTextField(
                     controller: _tokenController,
-                    decoration: const InputDecoration(
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 1,
-                        ),
-                      ),
-                      hintText: 'User token',
-                      labelText: 'User token',
-                    ),
-                    style: const TextStyle(
-                      color: Colors.black38,
-                    ),
+                    hintText: 'User token',
+                    labelText: 'User token',
                     maxLines: null,
+                    style: const TextStyle(
+                      color: Colors.black45,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -181,12 +141,15 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
+                const Divider(
+                  color: Colors.black87,
+                ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 40),
                   ),
                   onPressed: () async {
-                    await requestPermission();
+                    await permissionHelper.requestPermission();
 
                     final Size size = MediaQuery.of(context).size;
 
@@ -206,13 +169,45 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   child: const Text(
-                    'Start Video Call',
+                    'Just join a video call',
                     style: TextStyle(
                       fontSize: 16,
                     ),
                   ),
                 ),
-                const SizedBox(height: 80),
+                const Text(
+                  'or',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginRoomPage(
+                          userID: _userIDController.text,
+                          roomID: _roomIDController.text,
+                          appSign: null,
+                          appID: settings.appID,
+                          token: _tokenController.text,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Join from preview page',
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 50),
               ],
             ),
           ),

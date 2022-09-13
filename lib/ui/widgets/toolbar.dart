@@ -10,7 +10,7 @@ class Toolbar extends StatefulWidget {
     required this.cameraEnabled,
     required this.micButtonPressed,
     required this.callEndButtonPressed,
-    required this.enableCameraButtonPressed,
+    required this.cameraButtonPressed,
     required this.switchCameraButtonPressed,
   }) : super(key: key);
 
@@ -18,7 +18,7 @@ class Toolbar extends StatefulWidget {
   final bool cameraEnabled;
   final void Function()? micButtonPressed;
   final void Function()? callEndButtonPressed;
-  final void Function()? enableCameraButtonPressed;
+  final void Function()? cameraButtonPressed;
   final void Function()? switchCameraButtonPressed;
 
   @override
@@ -35,23 +35,25 @@ class _ToolbarState extends State<Toolbar> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _ToolbarButton(
-            onPressed: widget.micButtonPressed,
-            icon: widget.micEnabled ? Icons.mic : Icons.mic_off,
-            color: widget.micEnabled ? const Color(0xFF3c4043) : const Color(0xFFea4335),
-          ),
-          _ToolbarButton(
+          ToolbarButton(
             onPressed: widget.callEndButtonPressed,
             icon: Icons.call_end,
             iconSize: 32,
             color: const Color(0xFFea4335),
           ),
-          _ToolbarButton(
-            onPressed: widget.enableCameraButtonPressed,
-            icon: widget.cameraEnabled ? Icons.videocam : Icons.videocam_off,
-            color: widget.cameraEnabled ? const Color(0xFF3c4043) : const Color(0xFFea4335),
+          ToolbarButton(
+            onPressed: widget.micButtonPressed,
+            icon: widget.micEnabled ? Icons.mic : Icons.mic_off,
+            color: widget.micEnabled ? const Color(0xFF3c4043) : Colors.white,
+            iconColor: widget.micEnabled ? Colors.white : const Color(0xFF3c4043),
           ),
-          _ToolbarButton(
+          ToolbarButton(
+            onPressed: widget.cameraButtonPressed,
+            icon: widget.cameraEnabled ? Icons.videocam : Icons.videocam_off,
+            color: widget.cameraEnabled ? const Color(0xFF3c4043) : Colors.white,
+            iconColor: widget.cameraEnabled ? Colors.white : const Color(0xFF3c4043),
+          ),
+          ToolbarButton(
             onPressed: widget.switchCameraButtonPressed,
             icon: Icons.switch_camera,
           ),
@@ -61,37 +63,42 @@ class _ToolbarState extends State<Toolbar> {
   }
 }
 
-class _ToolbarButton extends StatefulWidget {
-  const _ToolbarButton({
+class ToolbarButton extends StatefulWidget {
+  const ToolbarButton({
     Key? key,
     required this.onPressed,
     required this.icon,
     this.color,
+    this.iconColor,
     this.iconSize,
+    this.padding = 10.0,
   }) : super(key: key);
 
   final void Function()? onPressed;
   final Color? color;
+  final Color? iconColor;
   final IconData icon;
   final double? iconSize;
+  final double padding;
 
   @override
-  State<_ToolbarButton> createState() => _ToolbarButtonState();
+  State<ToolbarButton> createState() => _ToolbarButtonState();
 }
 
-class _ToolbarButtonState extends State<_ToolbarButton> {
+class _ToolbarButtonState extends State<ToolbarButton> {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         shape: const CircleBorder(),
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(widget.padding),
         backgroundColor: widget.color ?? const Color(0xFF3c4043),
       ),
       onPressed: widget.onPressed,
       child: Icon(
         widget.icon,
         size: widget.iconSize,
+        color: widget.iconColor ?? Colors.white,
       ),
     );
   }
