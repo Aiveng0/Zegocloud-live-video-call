@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zegocloud_live_video_call/ui/pages/many_to_many_call_page.dart';
+import 'package:zegocloud_live_video_call/models/video_model.dart';
 
 class RemoteVideoDisabled extends StatelessWidget {
   const RemoteVideoDisabled({
@@ -18,7 +18,7 @@ class RemoteVideoDisabled extends StatelessWidget {
         Container(
           width: size.width,
           height: size.height,
-          color: const Color(0xFF444444),
+          color: const Color(0xFF3c4043),
           child: const Icon(
             Icons.account_circle,
             size: 60,

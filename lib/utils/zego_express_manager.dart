@@ -383,7 +383,7 @@ class ZegoExpressManager {
 
     // The streamID can use any character.
     // For the convenience of query, roomID + UserID + suffix is used here.
-    String streamID = roomID + userID + "_main";
+    String streamID = "$roomID${userID}_main";
     return streamID;
   }
 
