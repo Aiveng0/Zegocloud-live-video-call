@@ -12,6 +12,13 @@ Size getVideoCardSize({
     );
   }
 
+  if (userCount == 2) {
+    return Size(
+      (screenSize.width - 30),
+      (screenSize.height - 100 - 45),
+    );
+  }
+
   if (userCount >= 3 && userCount <= 4) {
     return Size(
       (screenSize.width - 30 - 10) / 2,
