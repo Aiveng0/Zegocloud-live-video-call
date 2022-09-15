@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
+import 'package:zegocloud_live_video_call/ui/widgets/face_to_face_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_card.dart';
 
 class RowView extends StatelessWidget {
@@ -61,8 +62,32 @@ class RowView extends StatelessWidget {
     return list;
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _setGridView(BuildContext context) {
+    if (videoModels.length == 2) {
+      return Container(
+        alignment: Alignment.center,
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        color: const Color(0xFF202124),
+        padding: const EdgeInsets.only(
+          top: 45,
+          bottom: 100,
+          left: 15,
+          right: 15,
+        ),
+        child: FaceToFaceView(
+          localView: RemoteVideoCard(
+            textureSize: textureSize,
+            videoModel: videoModels[0],
+          ),
+          remoteView: RemoteVideoCard(
+            textureSize: textureSize,
+            videoModel: videoModels[1],
+          ),
+          screenSize: MediaQuery.of(context).size,
+        ),
+      );
+    }
     return Container(
       alignment: Alignment.center,
       width: MediaQuery.of(context).size.width,
@@ -79,5 +104,10 @@ class RowView extends StatelessWidget {
         children: _getCards(),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _setGridView(context);
   }
 }
