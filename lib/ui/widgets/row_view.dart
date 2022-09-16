@@ -79,6 +79,7 @@ class RowView extends StatelessWidget {
           localView: RemoteVideoCard(
             textureSize: textureSize,
             videoModel: videoModels[0],
+            isSmall: true,
           ),
           remoteView: RemoteVideoCard(
             textureSize: textureSize,
@@ -88,6 +89,7 @@ class RowView extends StatelessWidget {
         ),
       );
     }
+    
     return Container(
       alignment: Alignment.center,
       width: MediaQuery.of(context).size.width,

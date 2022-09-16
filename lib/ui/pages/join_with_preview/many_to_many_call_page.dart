@@ -11,8 +11,8 @@ import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
 import 'package:zegocloud_live_video_call/utils/call_helper.dart';
 import 'package:zegocloud_live_video_call/utils/texture_size_helper.dart';
 
-class GroupCallPage extends StatefulWidget {
-  const GroupCallPage({
+class ManyToManyCallPage extends StatefulWidget {
+  const ManyToManyCallPage({
     Key? key,
     required this.userID,
     required this.roomID,
@@ -38,10 +38,10 @@ class GroupCallPage extends StatefulWidget {
   final bool useFrontCamera;
 
   @override
-  State<GroupCallPage> createState() => _VideoCallPageState();
+  State<ManyToManyCallPage> createState() => _VideoCallPageState();
 }
 
-class _VideoCallPageState extends State<GroupCallPage> {
+class _VideoCallPageState extends State<ManyToManyCallPage> {
   final CallHelper callHelper = CallHelper();
   late bool _micEnabled = widget.micEnabled;
   late bool _cameraEnabled = widget.cameraEnabled;

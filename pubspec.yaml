@@ -15,6 +15,7 @@ dependencies:
   zego_express_engine: ^2.22.0
   permission_handler: ^10.0.0
   http: ^0.13.4
+  wakelock: ^0.6.2
 
 dev_dependencies:
   flutter_test:

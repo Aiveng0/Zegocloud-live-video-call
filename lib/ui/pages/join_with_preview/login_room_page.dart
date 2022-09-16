@@ -1,9 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
-import 'package:zegocloud_live_video_call/ui/pages/join_with_preview/group_call_page.dart';
+import 'package:zegocloud_live_video_call/ui/pages/join_with_preview/many_to_many_call_page.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_card.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/test_text_field.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
@@ -39,7 +42,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
   bool _micEnabled = false;
   bool _cameraEnabled = false;
   bool _useFrontCamera = true;
-  bool _groupCallPageClosed = false;
+  bool _callPageClosed = false;
   bool _initialRender = true;
 
   @override
@@ -171,6 +174,8 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
     return WillPopScope(
       onWillPop: () async {
         _destroyEngine();
+        Wakelock.disable();
+        log(name: 'Keep screen awake', 'Wakelock disabled');
         return true;
       },
       child: Scaffold(
@@ -186,6 +191,8 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
             ),
             onPressed: () {
               _destroyEngine();
+              Wakelock.disable();
+              log(name: 'Keep screen awake', 'Wakelock disabled');
               Navigator.of(context).pop();
             },
           ),
@@ -288,10 +295,13 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                             ZegoExpressEngine.instance.destroyTextureRenderer(_localViewID);
                           }
 
-                          _groupCallPageClosed = await Navigator.push(
+                          Wakelock.enable();
+                          log(name: 'Keep screen awake', 'Wakelock enabled');
+
+                          _callPageClosed = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => GroupCallPage(
+                              builder: (context) => ManyToManyCallPage(
                                 userID: widget.userID,
                                 roomID: widget.roomID,
                                 appSign: null,
@@ -308,7 +318,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                             ),
                           );
 
-                          if (_groupCallPageClosed) {
+                          if (_callPageClosed) {
                             ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
                             ZegoExpressEngine.instance.muteMicrophone(!_micEnabled);
 
@@ -335,7 +345,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                _groupCallPageClosed ? 'Join a call again' : 'Join a call',
+                                _callPageClosed ? 'Join a call again' : 'Join a call',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontSize: 16,

@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/ui/pages/join_with_preview/login_room_page.dart';
-import 'package:zegocloud_live_video_call/ui/pages/many_to_many_call_page.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/test_text_field.dart';
 import 'package:zegocloud_live_video_call/utils/permission_helper.dart';
 import 'package:zegocloud_live_video_call/utils/settings.dart' as settings;
@@ -17,7 +16,6 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _userIDController = TextEditingController(text: '1234');
   final TextEditingController _roomIDController = TextEditingController(text: '1111');
   final TextEditingController _tokenController = TextEditingController(text: settings.token);
-  final TextEditingController _usernameController = TextEditingController();
   final PermissionHelper permissionHelper = PermissionHelper();
 
   @override
@@ -25,7 +23,6 @@ class _HomePageState extends State<HomePage> {
     _userIDController.dispose();
     _roomIDController.dispose();
     _tokenController.dispose();
-    _usernameController.dispose();
     super.dispose();
   }
 
@@ -63,23 +60,22 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                TestTextField(
-                  controller: _userIDController,
-                  hintText: 'User ID',
-                  labelText: 'User ID',
+                IgnorePointer(
+                  ignoring: true,
+                  child: TestTextField(
+                    controller: _userIDController,
+                    hintText: 'User ID',
+                    labelText: 'User ID',
+                    style: const TextStyle(
+                      color: Colors.black45,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 TestTextField(
                   controller: _roomIDController,
                   hintText: 'Room ID',
                   labelText: 'Room ID',
-                ),
-                const SizedBox(height: 20),
-                TestTextField(
-                  controller: _usernameController,
-                  hintText: 'Username',
-                  labelText: 'Username',
-                  maxLength: 30,
                 ),
                 const SizedBox(height: 20),
                 IgnorePointer(
@@ -143,44 +139,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Divider(
                   color: Colors.black87,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 40),
-                  ),
-                  onPressed: () async {
-                    await permissionHelper.requestPermission();
-
-                    final Size size = MediaQuery.of(context).size;
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ManyToManyCallPage(
-                          userID: _userIDController.text,
-                          roomID: _roomIDController.text,
-                          appSign: null,
-                          appID: settings.appID,
-                          token: _tokenController.text,
-                          username: _usernameController.text,
-                          screenSize: size,
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Just join a video call',
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const Text(
-                  'or',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(

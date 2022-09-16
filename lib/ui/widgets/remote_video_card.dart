@@ -7,18 +7,22 @@ class RemoteVideoCard extends StatelessWidget {
     Key? key,
     required this.textureSize,
     required this.videoModel,
+    this.isSmall = false,
   }) : super(key: key);
 
   final Size textureSize;
   final VideoModel videoModel;
+  final bool isSmall;
 
-  _getBody() {
+  dynamic _getBody() {
     if (videoModel.texture != null) {
       return videoModel.texture;
     }
+
     return RemoteVideoDisabled(
       size: textureSize,
       videoModel: videoModel,
+      isSmall: isSmall,
     );
   }
 
@@ -38,13 +42,13 @@ class RemoteVideoCard extends StatelessWidget {
             left: 10,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: textureSize.width - 20,
+                maxWidth: isSmall ? (textureSize.width / 3.5) - 20 : textureSize.width - 20,
               ),
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: Colors.black38,
-              ),
+              // padding: const EdgeInsets.all(3),
+              // decoration: BoxDecoration(
+              //   borderRadius: BorderRadius.circular(4),
+              //   color: Colors.black38,
+              // ),
               child: Text(
                 videoModel.stream.user.userName,
                 maxLines: 1,
@@ -59,7 +63,7 @@ class RemoteVideoCard extends StatelessWidget {
             top: 10,
             right: 10,
             child: Container(
-              padding: const EdgeInsets.all(5),
+              padding: isSmall ? const EdgeInsets.all(3) : const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: videoModel.micEnabled ? Colors.blueAccent : Colors.black38,
@@ -67,7 +71,7 @@ class RemoteVideoCard extends StatelessWidget {
               child: Icon(
                 videoModel.micEnabled ? Icons.mic : Icons.mic_off,
                 color: Colors.white,
-                size: 19,
+                size: isSmall ? 14 : 19,
               ),
             ),
           ),
