@@ -3,6 +3,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/online_users_counter.dart';
@@ -594,46 +595,49 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         Navigator.pop(context, true);
         return true;
       },
-      child: Scaffold(
-        body: Stack(
-          children: [
-            RowView(
-              videoModels: _rowViewList(),
-              textureSize: getVideoCardSize(
-                screenSize: widget.screenSize,
-                userCount: _onlineUsersCount,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          body: Stack(
+            children: [
+              RowView(
+                videoModels: _rowViewList(),
+                textureSize: getVideoCardSize(
+                  screenSize: widget.screenSize,
+                  userCount: _onlineUsersCount,
+                ),
               ),
-            ),
-            OnlineUsersCounter(
-              onlineUsersCount: _onlineUsersCount,
-            ),
-            Toolbar(
-              micEnabled: _micEnabled,
-              cameraEnabled: _cameraEnabled,
-              micButtonPressed: () {
-                ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
-                setState(() => _micEnabled = !_micEnabled);
-              },
-              callEndButtonPressed: () {
-                _callEndButtonPressed();
-                Navigator.pop(context, true);
-              },
-              cameraButtonPressed: () async {
-                setState(() => _cameraEnabled = !_cameraEnabled);
-                ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
+              OnlineUsersCounter(
+                onlineUsersCount: _onlineUsersCount,
+              ),
+              Toolbar(
+                micEnabled: _micEnabled,
+                cameraEnabled: _cameraEnabled,
+                micButtonPressed: () {
+                  ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
+                  setState(() => _micEnabled = !_micEnabled);
+                },
+                callEndButtonPressed: () {
+                  _callEndButtonPressed();
+                  Navigator.pop(context, true);
+                },
+                cameraButtonPressed: () async {
+                  setState(() => _cameraEnabled = !_cameraEnabled);
+                  ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
 
-                if (_cameraEnabled) {
-                  await _startPreview(_localViewID);
-                } else {
-                  await ZegoExpressEngine.instance.stopPreview();
-                }
-              },
-              switchCameraButtonPressed: () async {
-                setState(() => _useFrontCamera = !_useFrontCamera);
-                ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
-              },
-            ),
-          ],
+                  if (_cameraEnabled) {
+                    await _startPreview(_localViewID);
+                  } else {
+                    await ZegoExpressEngine.instance.stopPreview();
+                  }
+                },
+                switchCameraButtonPressed: () async {
+                  setState(() => _useFrontCamera = !_useFrontCamera);
+                  ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
