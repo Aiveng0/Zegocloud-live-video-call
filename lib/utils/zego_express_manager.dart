@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_final_fields
+
 import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';

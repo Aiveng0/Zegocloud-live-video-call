@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/ui/pages/home_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
