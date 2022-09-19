@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_final_fields
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +43,7 @@ class ManyToManyCallPage extends StatefulWidget {
   State<ManyToManyCallPage> createState() => _VideoCallPageState();
 }
 
-class _VideoCallPageState extends State<ManyToManyCallPage> {
+class _VideoCallPageState extends State<ManyToManyCallPage> with WidgetsBindingObserver {
   final CallHelper callHelper = CallHelper();
   late bool _micEnabled = widget.micEnabled;
   late bool _cameraEnabled = widget.cameraEnabled;
@@ -74,12 +75,35 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   @override
   void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _eventHandler();
     _createUserAndLoginRoom();
     _startSoundLevelMonitor();
     _publishStream();
     _createPreviewRenderer();
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.detached) return;
+
+    final isBackground = state == AppLifecycleState.paused;
+    final bool isIOS = Platform.isIOS;
+
+    if (isBackground && isIOS) {
+      log(name: 'didChangeAppLifecycleState', 'AppLifecycleState.paused (isBackground)');
+      ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
+      ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
+    }
   }
 
   Future<void> _createUserAndLoginRoom() async {
@@ -107,12 +131,12 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     /// [streamList] it is ONLY updated stream!
     ZegoExpressEngine.onRoomStreamUpdate = (roomID, updateType, streamList, extendedData) async {
       if (updateType == ZegoUpdateType.Add) {
-        log('ZegoUpdateType.Add');
+        log(name: 'onRoomStreamUpdate', 'ZegoUpdateType.Add');
 
         await _playRemoteStreams(streamList);
       }
       if (updateType == ZegoUpdateType.Delete) {
-        log('ZegoUpdateType.Delete');
+        log(name: 'onRoomStreamUpdate', 'ZegoUpdateType.Delete');
 
         log('_videoModelList = ${_videoModelList.length}');
         log('_remoteViewIDs = ${_remoteViewIDs.length}');
