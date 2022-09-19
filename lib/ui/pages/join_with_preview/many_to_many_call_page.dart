@@ -74,12 +74,17 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   @override
   void initState() {
+    super.initState();
     _eventHandler();
     _createUserAndLoginRoom();
     _startSoundLevelMonitor();
     _publishStream();
     _createPreviewRenderer();
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _createUserAndLoginRoom() async {
@@ -107,12 +112,12 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
     /// [streamList] it is ONLY updated stream!
     ZegoExpressEngine.onRoomStreamUpdate = (roomID, updateType, streamList, extendedData) async {
       if (updateType == ZegoUpdateType.Add) {
-        log('ZegoUpdateType.Add');
+        log(name: 'onRoomStreamUpdate', 'ZegoUpdateType.Add');
 
         await _playRemoteStreams(streamList);
       }
       if (updateType == ZegoUpdateType.Delete) {
-        log('ZegoUpdateType.Delete');
+        log(name: 'onRoomStreamUpdate', 'ZegoUpdateType.Delete');
 
         log('_videoModelList = ${_videoModelList.length}');
         log('_remoteViewIDs = ${_remoteViewIDs.length}');
@@ -325,6 +330,18 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           soundLevel = v;
           loudestStreamID = k;
         }
+
+        for (int i = 0; i < _videoModelList.length; i++) {
+          if (_videoModelList[i].stream.streamID == k) {
+            _videoModelList[i].soundLevel = v;
+          }
+        }
+
+        for (int i = 0; i < _disabledVideoModelList.length; i++) {
+          if (_disabledVideoModelList[i].stream.streamID == k) {
+            _disabledVideoModelList[i].soundLevel = v;
+          }
+        }
       });
 
       if (loudestStreamID.isNotEmpty && _loudestStreamID != loudestStreamID) {
@@ -357,6 +374,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           log(name: 'loudest stream ID', 'onRemoteSoundLevelUpdate: loudest stream ID = $loudestStreamID');
         }
       }
+
+      setState(() {});
     };
   }
 
@@ -511,7 +530,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   /// Starts sound level monitoring. Support enable some advanced feature.
   void _startSoundLevelMonitor() {
     ZegoExpressEngine.instance.startSoundLevelMonitor(
-      config: ZegoSoundLevelConfig(1000, false),
+      config: ZegoSoundLevelConfig(500, false),
     );
   }
 
