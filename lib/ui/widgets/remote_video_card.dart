@@ -27,7 +27,7 @@ class RemoteVideoCard extends StatelessWidget {
   }
 
   Widget _showHideMicIcon() {
-    if (videoModel.micEnabled) {
+    if (!videoModel.micEnabled) {
       return Positioned(
         top: 10,
         right: 10,
