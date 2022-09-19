@@ -51,35 +51,45 @@ class RemoteVideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Stack(
-        children: [
-          SizedBox(
-            width: textureSize.width,
-            height: textureSize.height,
+    return Stack(
+      children: [
+        Container(
+          decoration: videoModel.soundLevel > 10
+              ? BoxDecoration(
+                  border: Border.all(
+                    color: const Color.fromARGB(255, 118, 168, 255),
+                    width: 2,
+                    strokeAlign: StrokeAlign.inside,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                )
+              : null,
+          width: textureSize.width,
+          height: textureSize.height,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
             child: _getBody(),
           ),
-          Positioned(
-            bottom: 10,
-            left: 10,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: isSmall ? (textureSize.width / 3.5) - 20 : textureSize.width - 20,
-              ),
-              child: Text(
-                videoModel.stream.user.userName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                ),
+        ),
+        Positioned(
+          bottom: 10,
+          left: 10,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: isSmall ? (textureSize.width / 3.5) - 20 : textureSize.width - 20,
+            ),
+            child: Text(
+              videoModel.stream.user.userName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
               ),
             ),
           ),
-          _showHideMicIcon(),
-        ],
-      ),
+        ),
+        _showHideMicIcon(),
+      ],
     );
   }
 }

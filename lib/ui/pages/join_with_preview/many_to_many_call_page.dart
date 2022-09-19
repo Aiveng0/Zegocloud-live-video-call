@@ -330,6 +330,18 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           soundLevel = v;
           loudestStreamID = k;
         }
+
+        for (int i = 0; i < _videoModelList.length; i++) {
+          if (_videoModelList[i].stream.streamID == k) {
+            _videoModelList[i].soundLevel = v;
+          }
+        }
+
+        for (int i = 0; i < _disabledVideoModelList.length; i++) {
+          if (_disabledVideoModelList[i].stream.streamID == k) {
+            _disabledVideoModelList[i].soundLevel = v;
+          }
+        }
       });
 
       if (loudestStreamID.isNotEmpty && _loudestStreamID != loudestStreamID) {
@@ -362,6 +374,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
           log(name: 'loudest stream ID', 'onRemoteSoundLevelUpdate: loudest stream ID = $loudestStreamID');
         }
       }
+
+      setState(() {});
     };
   }
 
@@ -516,7 +530,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   /// Starts sound level monitoring. Support enable some advanced feature.
   void _startSoundLevelMonitor() {
     ZegoExpressEngine.instance.startSoundLevelMonitor(
-      config: ZegoSoundLevelConfig(1000, false),
+      config: ZegoSoundLevelConfig(500, false),
     );
   }
 
