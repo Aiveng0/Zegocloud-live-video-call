@@ -101,7 +101,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> with WidgetsBindingO
 
     if (isBackground && isIOS) {
       log(name: 'didChangeAppLifecycleState', 'AppLifecycleState.paused (isBackground)');
-      ZegoExpressEngine.instance.muteMicrophone(!_micEnabled);
+      ZegoExpressEngine.instance.muteMicrophone(false);
+      ZegoExpressEngine.instance.enableAudioCaptureDevice(true);
       ZegoExpressEngine.instance.enableCamera(_cameraEnabled);
     }
   }
