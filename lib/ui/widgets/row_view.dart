@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/face_to_face_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_card.dart';
+import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
 class RowView extends StatelessWidget {
   const RowView({
@@ -70,8 +71,8 @@ class RowView extends StatelessWidget {
         height: MediaQuery.of(context).size.height,
         color: const Color(0xFF202124),
         padding: const EdgeInsets.only(
-          top: 45,
-          bottom: 100,
+          top: SizeHelper.rowViewTopPadding,
+          bottom: SizeHelper.rowViewBottomPadding,
           left: 15,
           right: 15,
         ),
@@ -89,14 +90,14 @@ class RowView extends StatelessWidget {
         ),
       );
     }
-    
+
     return Container(
       alignment: Alignment.center,
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
       padding: const EdgeInsets.only(
-        top: 45,
-        bottom: 100,
+        top: SizeHelper.rowViewTopPadding,
+        bottom: SizeHelper.rowViewBottomPadding,
       ),
       color: const Color(0xFF202124),
       child: Wrap(

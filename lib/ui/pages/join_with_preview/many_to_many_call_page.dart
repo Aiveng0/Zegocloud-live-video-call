@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
-import 'package:zegocloud_live_video_call/ui/widgets/online_users_counter.dart';
+import 'package:zegocloud_live_video_call/ui/widgets/call_appbar.dart';
+import 'package:zegocloud_live_video_call/ui/widgets/call_info_page.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/row_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
 import 'package:zegocloud_live_video_call/utils/call_helper.dart';
@@ -71,6 +72,8 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
 
   VideoModel? _loudestEnabledVideoModel;
   VideoModel? _loudestDisabledVideoModel;
+
+  bool showCallInfoPage = false;
 
   @override
   void initState() {
@@ -610,6 +613,12 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        /// Close the [CallInfoPage] when [showCallInfoPage] is true and user pressed back-button.
+        if (showCallInfoPage) {
+          setState(() => showCallInfoPage = !showCallInfoPage);
+          return false;
+        }
+
         _callEndButtonPressed();
         Navigator.pop(context, true);
         return true;
@@ -626,9 +635,14 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                   userCount: _onlineUsersCount,
                 ),
               ),
-              OnlineUsersCounter(
-                onlineUsersCount: _onlineUsersCount,
-              ),
+              CallAppBar(
+                  onlineUsersCount: _onlineUsersCount,
+                  onCallNameTap: () {
+                    setState(() => showCallInfoPage = !showCallInfoPage);
+                  },
+                  callEndButtonPressed: () {
+                    _callEndButtonPressed();
+                  }),
               Toolbar(
                 micEnabled: _micEnabled,
                 cameraEnabled: _cameraEnabled,
@@ -655,6 +669,22 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                   ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
                 },
               ),
+              if (showCallInfoPage)
+                CallInfoPage(
+                  onTap: () {
+                    setState(() => showCallInfoPage = !showCallInfoPage);
+                  },
+                  videoModels: <VideoModel>[
+                    VideoModel(
+                      stream: _localStream,
+                      texture: _cameraEnabled ? _localViewWidget : null,
+                      viewID: _localViewID,
+                      micEnabled: _micEnabled,
+                    ),
+                    ..._videoModelList,
+                    ..._disabledVideoModelList
+                  ],
+                ),
             ],
           ),
         ),

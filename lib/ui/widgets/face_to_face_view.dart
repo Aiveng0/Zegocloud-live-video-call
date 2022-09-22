@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
 class FaceToFaceView extends StatefulWidget {
   const FaceToFaceView({
@@ -17,14 +18,17 @@ class FaceToFaceView extends StatefulWidget {
 }
 
 class _FaceToFaceViewState extends State<FaceToFaceView> {
+  final rowViewTopPadding = SizeHelper.rowViewTopPadding;
+  final rowViewBottomPadding = SizeHelper.rowViewBottomPadding;
+
   late Size localViewSize = Size(
     (widget.screenSize.width - 30) / 3.5,
-    (widget.screenSize.height - 100 - 45) / 3.5,
+    (widget.screenSize.height - rowViewTopPadding - rowViewBottomPadding) / 3.5,
   );
 
   late Offset localViewOffset = Offset(
     widget.screenSize.width - 30 - 10 - localViewSize.width,
-    widget.screenSize.height - 100 - 45 - 10 - localViewSize.height,
+    widget.screenSize.height - rowViewTopPadding - rowViewBottomPadding - 10 - localViewSize.height,
   );
 
   @override
@@ -44,19 +48,16 @@ class _FaceToFaceViewState extends State<FaceToFaceView> {
               double dx = details.offset.dx;
               double dy = details.offset.dy;
 
-              // 15 => left and right padding
               if (details.offset.dx < 15) dx = 15;
               if (details.offset.dx > size.width - 15 - localViewSize.width) {
                 dx = size.width - 15 - localViewSize.width;
               }
-              // 45 => top padding
-              // 100 => bottom padding
-              if (details.offset.dy < 45) dy = 45;
-              if (details.offset.dy > size.height - 100 - localViewSize.height) {
-                dy = size.height - 100 - localViewSize.height;
+              if (details.offset.dy < rowViewBottomPadding) dy = rowViewBottomPadding;
+              if (details.offset.dy > size.height - rowViewTopPadding - localViewSize.height) {
+                dy = size.height - rowViewTopPadding - localViewSize.height;
               }
 
-              setState(() => localViewOffset = Offset(dx - 15, dy - 45));
+              setState(() => localViewOffset = Offset(dx - 15, dy - rowViewBottomPadding));
             },
             childWhenDragging: Container(),
             feedback: ClipRRect(

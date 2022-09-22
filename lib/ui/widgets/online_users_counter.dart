@@ -10,40 +10,22 @@ class OnlineUsersCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 50,
-      left: 25,
-      child: Container(
-        padding: const EdgeInsets.only(
-          right: 4,
-          top: 2,
-          bottom: 2,
-          left: 2,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(
-            4,
+    return Center(
+      child: Row(
+        children: [
+          const Icon(
+            Icons.account_box,
+            color: Colors.white,
           ),
-          color: Colors.black54,
-        ),
-        child: Center(
-          child: Row(
-            children: [
-              const Icon(
-                Icons.account_box,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                onlineUsersCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ],
+          const SizedBox(width: 5),
+          Text(
+            onlineUsersCount.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

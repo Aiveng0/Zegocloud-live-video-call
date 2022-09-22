@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
 /// Get the size for the Texture renderer.
 Size getVideoCardSize({
@@ -8,33 +9,33 @@ Size getVideoCardSize({
   if (userCount == 1) {
     return Size(
       (screenSize.width - 30),
-      (screenSize.height - 100 - 45),
+      (screenSize.height - SizeHelper.rowViewBottomPadding - SizeHelper.rowViewTopPadding),
     );
   }
 
   if (userCount == 2) {
     return Size(
       (screenSize.width - 30),
-      (screenSize.height - 100 - 45),
+      (screenSize.height - SizeHelper.rowViewBottomPadding - SizeHelper.rowViewTopPadding),
     );
   }
 
   if (userCount >= 3 && userCount <= 4) {
     return Size(
       (screenSize.width - 30 - 10) / 2,
-      (screenSize.height - 100 - 45 - 10) / 2.4,
+      (screenSize.height - SizeHelper.rowViewBottomPadding - SizeHelper.rowViewTopPadding - 10) / 2.4,
     );
   }
 
   if (userCount > 4) {
     return Size(
       (screenSize.width - 30 - 10) / 2,
-      (screenSize.height - 100 - 45 - 20) / 3,
+      (screenSize.height - SizeHelper.rowViewBottomPadding - SizeHelper.rowViewTopPadding - 20) / 3,
     );
   }
 
   return Size(
     (screenSize.width - 30),
-    (screenSize.height - 100 - 45 - 10) / 2,
+    (screenSize.height - SizeHelper.rowViewBottomPadding - SizeHelper.rowViewTopPadding - 10) / 2,
   );
 }
