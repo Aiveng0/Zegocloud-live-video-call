@@ -74,6 +74,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   VideoModel? _loudestDisabledVideoModel;
 
   bool showCallInfoPage = false;
+  bool hideControlElements = false; // hide appbar and toolbar
 
   @override
   void initState() {
@@ -628,24 +629,44 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
         child: Scaffold(
           body: Stack(
             children: [
-              RowView(
-                videoModels: _rowViewList(),
-                textureSize: getVideoCardSize(
-                  screenSize: widget.screenSize,
-                  userCount: _onlineUsersCount,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    hideControlElements = !hideControlElements;
+
+                    // callHelper.updateTexturesSize(
+                    //   context: context,
+                    //   isFullScreen: hideControlElements,
+                    //   onlineUsersCount: _onlineUsersCount,
+                    //   remoteViewIDs: _remoteViewIDs,
+                    //   localViewID: _localViewID,
+                    // );
+                  });
+                },
+                child: RowView(
+                  // isFullScreen: hideControlElements,
+                  videoModels: _rowViewList(),
+                  textureSize: getVideoCardSize(
+                    screenSize: widget.screenSize,
+                    userCount: _onlineUsersCount,
+                    // isFullScreen: hideControlElements,
+                  ),
                 ),
               ),
               CallAppBar(
-                  onlineUsersCount: _onlineUsersCount,
-                  onCallNameTap: () {
-                    setState(() => showCallInfoPage = !showCallInfoPage);
-                  },
-                  callEndButtonPressed: () {
-                    _callEndButtonPressed();
-                  }),
+                hideControlElements: hideControlElements,
+                onlineUsersCount: _onlineUsersCount,
+                onCallNameTap: () {
+                  setState(() => showCallInfoPage = !showCallInfoPage);
+                },
+                callEndButtonPressed: () {
+                  _callEndButtonPressed();
+                },
+              ),
               Toolbar(
                 micEnabled: _micEnabled,
                 cameraEnabled: _cameraEnabled,
+                hideControlElements: hideControlElements,
                 micButtonPressed: () {
                   ZegoExpressEngine.instance.muteMicrophone(_micEnabled);
                   setState(() => _micEnabled = !_micEnabled);
@@ -669,8 +690,15 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                   ZegoExpressEngine.instance.useFrontCamera(_useFrontCamera);
                 },
               ),
-              if (showCallInfoPage)
-                CallInfoPage(
+
+              /// Call Info Page
+              AnimatedPositioned(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                top: showCallInfoPage ? 0 : MediaQuery.of(context).size.height,
+                child: CallInfoPage(
                   onTap: () {
                     setState(() => showCallInfoPage = !showCallInfoPage);
                   },
@@ -685,6 +713,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                     ..._disabledVideoModelList
                   ],
                 ),
+              ),
             ],
           ),
         ),

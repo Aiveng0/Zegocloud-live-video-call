@@ -8,9 +8,11 @@ class CallAppBar extends StatefulWidget {
     required this.onlineUsersCount,
     required this.callEndButtonPressed,
     this.onCallNameTap,
+    this.hideControlElements = false,
   });
 
   final int onlineUsersCount;
+  final bool hideControlElements;
   final VoidCallback? onCallNameTap;
   final VoidCallback callEndButtonPressed;
 
@@ -21,39 +23,39 @@ class CallAppBar extends StatefulWidget {
 class _CallAppBarState extends State<CallAppBar> {
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 30,
+    return AnimatedPositioned(
       left: 25,
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width - 30 - 25,
-        height: 40,
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () {
-                widget.callEndButtonPressed();
-                Navigator.pop(context, true);
-              },
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
+      curve: Curves.easeInOut,
+      top: widget.hideControlElements ? -40 : 30,
+      duration: const Duration(milliseconds: 200),
+      height: widget.hideControlElements ? 0 : 40,
+      width: MediaQuery.of(context).size.width - 30 - 25,
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              widget.callEndButtonPressed();
+              Navigator.pop(context, true);
+            },
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 25),
+          Expanded(
+            child: InkWell(
+              onTap: widget.onCallNameTap,
+              child: const CallName(
+                name: 'Some call name onlineUsersCount: widget.onlineUsersCount',
               ),
             ),
-            const SizedBox(width: 25),
-            Expanded(
-              child: InkWell(
-                onTap: widget.onCallNameTap,
-                child: const CallName(
-                  name: 'Some call name onlineUsersCount: widget.onlineUsersCount',
-                ),
-              ),
-            ),
-            const Spacer(),
-            OnlineUsersCounter(
-              onlineUsersCount: widget.onlineUsersCount,
-            ),
-          ],
-        ),
+          ),
+          const Spacer(),
+          OnlineUsersCounter(
+            onlineUsersCount: widget.onlineUsersCount,
+          ),
+        ],
       ),
     );
   }

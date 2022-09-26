@@ -18,8 +18,8 @@ class FaceToFaceView extends StatefulWidget {
 }
 
 class _FaceToFaceViewState extends State<FaceToFaceView> {
-  final rowViewTopPadding = SizeHelper.rowViewTopPadding;
-  final rowViewBottomPadding = SizeHelper.rowViewBottomPadding;
+  final rowViewTopPadding = SizeHelper.rowViewTopPadding();
+  final rowViewBottomPadding = SizeHelper.rowViewBottomPadding();
 
   late Size localViewSize = Size(
     (widget.screenSize.width - 30) / 3.5,

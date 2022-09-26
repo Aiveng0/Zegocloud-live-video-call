@@ -9,10 +9,12 @@ class RowView extends StatelessWidget {
     Key? key,
     required this.videoModels,
     required this.textureSize,
+    this.isFullScreen = false,
   }) : super(key: key);
 
   final List<VideoModel> videoModels;
   final Size textureSize;
+  final bool isFullScreen;
 
   List<Widget> _getCards() {
     List<Widget> list = [];
@@ -70,9 +72,9 @@ class RowView extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         color: const Color(0xFF202124),
-        padding: const EdgeInsets.only(
-          top: SizeHelper.rowViewTopPadding,
-          bottom: SizeHelper.rowViewBottomPadding,
+        padding: EdgeInsets.only(
+          top: SizeHelper.rowViewTopPadding(isFullScreen: isFullScreen),
+          bottom: SizeHelper.rowViewBottomPadding(isFullScreen: isFullScreen),
           left: 15,
           right: 15,
         ),
@@ -95,9 +97,9 @@ class RowView extends StatelessWidget {
       alignment: Alignment.center,
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      padding: const EdgeInsets.only(
-        top: SizeHelper.rowViewTopPadding,
-        bottom: SizeHelper.rowViewBottomPadding,
+      padding: EdgeInsets.only(
+        top: SizeHelper.rowViewTopPadding(isFullScreen: isFullScreen),
+        bottom: SizeHelper.rowViewBottomPadding(isFullScreen: isFullScreen),
       ),
       color: const Color(0xFF202124),
       child: Wrap(

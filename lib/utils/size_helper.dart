@@ -1,4 +1,5 @@
 class SizeHelper {
-  static const double rowViewTopPadding = 75; // 45
-  static const double rowViewBottomPadding = 100; // 100
+  static double rowViewTopPadding({bool isFullScreen = false}) => isFullScreen ? 50 : 75;
+
+  static double rowViewBottomPadding({bool isFullScreen = false}) => isFullScreen ? 30 : 100;
 }

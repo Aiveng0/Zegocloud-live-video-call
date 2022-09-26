@@ -20,68 +20,67 @@ class CallInfoPage extends StatefulWidget {
 class _BottomSheetPageState extends State<CallInfoPage> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: DefaultTabController(
-        length: 2,
-        child: Container(
-          color: Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(
-                  left: 15,
-                  right: 15,
-                  top: 15,
-                ),
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: widget.onTap,
-                      child: const Icon(
-                        Icons.arrow_back_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    const Text(
-                      'Call details',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
+    return DefaultTabController(
+      length: 2,
+      child: Container(
+        padding: const EdgeInsets.only(top: 30),
+        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.only(
+                left: 15,
+                right: 15,
+                top: 15,
               ),
-              Theme(
-                data: ThemeData(
-                  highlightColor: Colors.transparent,
-                  splashColor: Colors.transparent,
-                ),
-                child: const TabBar(
-                  labelColor: Colors.black87,
-                  indicatorColor: Colors.black87,
-                  unselectedLabelColor: Colors.black45,
-                  labelStyle: TextStyle(
-                    letterSpacing: 1.2,
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: widget.onTap,
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                    ),
                   ),
-                  tabs: [
-                    Tab(text: 'People'),
-                    Tab(text: 'Information'),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    PeopleTab(
-                      videoModels: widget.videoModels,
+                  const SizedBox(width: 15),
+                  const Text(
+                    'Call details',
+                    style: TextStyle(
+                      fontSize: 16,
                     ),
-                    const InformationTab(),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Theme(
+              data: ThemeData(
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+              ),
+              child: const TabBar(
+                labelColor: Colors.black87,
+                indicatorColor: Colors.black87,
+                unselectedLabelColor: Colors.black45,
+                labelStyle: TextStyle(
+                  letterSpacing: 1.2,
+                ),
+                tabs: [
+                  Tab(text: 'People'),
+                  Tab(text: 'Information'),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  PeopleTab(
+                    videoModels: widget.videoModels,
+                  ),
+                  const InformationTab(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
