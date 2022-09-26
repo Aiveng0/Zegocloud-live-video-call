@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/face_to_face_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_card.dart';
+import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
 class RowView extends StatelessWidget {
   const RowView({
     Key? key,
     required this.videoModels,
     required this.textureSize,
+    this.isFullScreen = false,
   }) : super(key: key);
 
   final List<VideoModel> videoModels;
   final Size textureSize;
+  final bool isFullScreen;
 
   List<Widget> _getCards() {
     List<Widget> list = [];
@@ -69,9 +72,9 @@ class RowView extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         color: const Color(0xFF202124),
-        padding: const EdgeInsets.only(
-          top: 45,
-          bottom: 100,
+        padding: EdgeInsets.only(
+          top: SizeHelper.rowViewTopPadding(isFullScreen: isFullScreen),
+          bottom: SizeHelper.rowViewBottomPadding(isFullScreen: isFullScreen),
           left: 15,
           right: 15,
         ),
@@ -89,14 +92,14 @@ class RowView extends StatelessWidget {
         ),
       );
     }
-    
+
     return Container(
       alignment: Alignment.center,
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      padding: const EdgeInsets.only(
-        top: 45,
-        bottom: 100,
+      padding: EdgeInsets.only(
+        top: SizeHelper.rowViewTopPadding(isFullScreen: isFullScreen),
+        bottom: SizeHelper.rowViewBottomPadding(isFullScreen: isFullScreen),
       ),
       color: const Color(0xFF202124),
       child: Wrap(

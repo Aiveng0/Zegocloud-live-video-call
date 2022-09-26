@@ -11,10 +11,12 @@ class CallHelper {
     required int onlineUsersCount,
     required List<int> remoteViewIDs,
     required int localViewID,
+    bool isFullScreen = false,
   }) async {
     final Size size = getVideoCardSize(
       screenSize: MediaQuery.of(context).size,
       userCount: onlineUsersCount,
+      isFullScreen: isFullScreen,
     );
 
     log('updateTextureRendererSize START');

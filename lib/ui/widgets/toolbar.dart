@@ -12,10 +12,12 @@ class Toolbar extends StatefulWidget {
     required this.callEndButtonPressed,
     required this.cameraButtonPressed,
     required this.switchCameraButtonPressed,
+    this.hideControlElements = false,
   }) : super(key: key);
 
   final bool micEnabled;
   final bool cameraEnabled;
+  final bool hideControlElements;
   final void Function()? micButtonPressed;
   final void Function()? callEndButtonPressed;
   final void Function()? cameraButtonPressed;
@@ -28,8 +30,10 @@ class Toolbar extends StatefulWidget {
 class _ToolbarState extends State<Toolbar> {
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 25,
+    return AnimatedPositioned(
+      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 200),
+      bottom: widget.hideControlElements ? -82 : 25,
       left: 0,
       right: 0,
       child: Row(
