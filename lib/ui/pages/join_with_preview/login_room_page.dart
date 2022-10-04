@@ -75,7 +75,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
   Future<void> _createPreviewRenderer() async {
     final Size size = MediaQuery.of(context).size;
 
-    await ZegoExpressEngine.instance.createTextureRenderer(size.width ~/ 2.5, size.height ~/ 3).then((textureID) {
+    await ZegoExpressEngine.instance.createTextureRenderer(size.width ~/ 2, size.height ~/ 2.2).then((textureID) {
       _localViewID = textureID;
 
       setState(() {
@@ -222,8 +222,8 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                       const SizedBox(height: 10),
                       RemoteVideoCard(
                         textureSize: Size(
-                          MediaQuery.of(context).size.width / 2.5,
-                          MediaQuery.of(context).size.height / 3,
+                          MediaQuery.of(context).size.width / 2,
+                          MediaQuery.of(context).size.height / 2.2,
                         ),
                         videoModel: _getVideoModel(),
                       ),
@@ -314,6 +314,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                                 cameraEnabled: _cameraEnabled,
                                 micEnabled: _micEnabled,
                                 useFrontCamera: _useFrontCamera,
+                                callName: 'Test call',
                               ),
                             ),
                           );

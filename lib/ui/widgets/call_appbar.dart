@@ -4,17 +4,19 @@ import 'package:zegocloud_live_video_call/ui/widgets/online_users_counter.dart';
 
 class CallAppBar extends StatefulWidget {
   const CallAppBar({
-    super.key,
+    Key? key,
     required this.onlineUsersCount,
     required this.callEndButtonPressed,
+    required this.callName,
     this.onCallNameTap,
     this.hideControlElements = false,
-  });
+  }) : super(key: key);
 
   final int onlineUsersCount;
   final bool hideControlElements;
   final VoidCallback? onCallNameTap;
   final VoidCallback callEndButtonPressed;
+  final String callName;
 
   @override
   State<CallAppBar> createState() => _CallAppBarState();
@@ -46,8 +48,8 @@ class _CallAppBarState extends State<CallAppBar> {
           Expanded(
             child: InkWell(
               onTap: widget.onCallNameTap,
-              child: const CallName(
-                name: 'Some call name onlineUsersCount: widget.onlineUsersCount',
+              child: CallName(
+                callName: widget.callName,
               ),
             ),
           ),

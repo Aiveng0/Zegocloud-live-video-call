@@ -1,122 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
 /// You can put a card with your video in the corners of the screen.
 class FaceToFaceView extends StatefulWidget {
   const FaceToFaceView({
-    super.key,
+    Key? key,
     required this.remoteView,
     required this.localView,
-    required this.screenSize,
-  });
+    required this.textureSize,
+    required this.localViewSize,
+  }) : super(key: key);
 
   final Widget remoteView;
   final Widget localView;
-  final Size screenSize;
+  final Size textureSize;
+  final Size localViewSize;
 
   @override
   State<FaceToFaceView> createState() => _FaceToFaceViewState();
 }
 
 class _FaceToFaceViewState extends State<FaceToFaceView> {
-  final rowViewTopPadding = SizeHelper.rowViewTopPadding();
-  final rowViewBottomPadding = SizeHelper.rowViewBottomPadding();
-
-  /// - 1 - top left
-  /// - 2 - top right
-  /// - 3 - bottom right (default)
-  /// - 4 - bottom left
+  /// - 1 - top left position.
+  /// - 2 - top right position.
+  /// - 3 - bottom right (default) position.
+  /// - 4 - bottom left position.
   int corner = 3;
 
-  late Size localViewSize = Size(
-    (widget.screenSize.width - 30) / 3.5,
-    (widget.screenSize.height - rowViewTopPadding - rowViewBottomPadding) / 3.5,
-  );
-
-  late Offset topLeft = const Offset(
-    10,
-    10,
-  );
-
-  late Offset topRight = Offset(
-    widget.screenSize.width - 30 - 10 - localViewSize.width,
-    10,
-  );
-
-  late Offset bottomLeft = Offset(
-    10,
-    widget.screenSize.height - rowViewTopPadding - rowViewBottomPadding - 10 - localViewSize.height,
-  );
-
-  late Offset bottomRight = Offset(
-    widget.screenSize.width - 30 - 10 - localViewSize.width,
-    widget.screenSize.height - rowViewTopPadding - rowViewBottomPadding - 10 - localViewSize.height,
-  );
-
-  late Offset localViewOffset = bottomRight;
-
   void case1(double dx, double dy) {
-    if (dx > 10) {
-      setState(() {
-        corner = 2;
-        localViewOffset = topRight;
-      });
-    }
-
-    if (dy > 10) {
-      setState(() {
-        corner = 4;
-        localViewOffset = bottomLeft;
-      });
-    }
+    if (dx > 10) setState(() => corner = 2);
+    if (dy > 10) setState(() => corner = 4);
   }
 
   void case2(double dx, double dy) {
-    if (dy > 10) {
-      setState(() {
-        corner = 3;
-        localViewOffset = bottomRight;
-      });
-    }
-
-    if (dx < -10) {
-      setState(() {
-        corner = 1;
-        localViewOffset = topLeft;
-      });
-    }
+    if (dy > 10) setState(() => corner = 3);
+    if (dx < -10) setState(() => corner = 1);
   }
 
   void case3(double dx, double dy) {
-    if (dx < -10) {
-      setState(() {
-        corner = 4;
-        localViewOffset = bottomLeft;
-      });
-    }
-
-    if (dy < -10) {
-      setState(() {
-        corner = 2;
-        localViewOffset = topRight;
-      });
-    }
+    if (dx < -10) setState(() => corner = 4);
+    if (dy < -10) setState(() => corner = 2);
   }
 
   void case4(double dx, double dy) {
-    if (dx > 10) {
-      setState(() {
-        corner = 3;
-        localViewOffset = bottomRight;
-      });
-    }
+    if (dx > 10) setState(() => corner = 3);
+    if (dy < -10) setState(() => corner = 1);
+  }
 
-    if (dy < -10) {
-      setState(() {
-        corner = 1;
-        localViewOffset = topLeft;
-      });
+  void _onPanUpdate(DragUpdateDetails details) {
+    double dx = details.delta.dx;
+    double dy = details.delta.dy;
+
+    if (dx > 10 || dx < -10 || dy > 10 || dy < -10) {
+      switch (corner) {
+        case 1:
+          case1(dx, dy);
+          break;
+        case 2:
+          case2(dx, dy);
+          break;
+        case 3:
+          case3(dx, dy);
+          break;
+        case 4:
+          case4(dx, dy);
+          break;
+      }
     }
+  }
+
+  Alignment _getAlignment(int corner) {
+    switch (corner) {
+      case 1:
+        return Alignment.topLeft;
+      case 2:
+        return Alignment.topRight;
+      case 3:
+        return Alignment.bottomRight;
+      case 4:
+        return Alignment.bottomLeft;
+      default:
+        return Alignment.bottomRight;
+    }
+  }
+
+  EdgeInsetsGeometry _getPadding(int corner) {
+    return corner != 4
+        ? const EdgeInsets.all(10)
+        : const EdgeInsets.only(
+            left: 10,
+            bottom: 35,
+          );
   }
 
   @override
@@ -127,47 +100,31 @@ class _FaceToFaceViewState extends State<FaceToFaceView> {
           borderRadius: BorderRadius.circular(10),
           child: widget.remoteView,
         ),
-        AnimatedPositioned(
+        AnimatedPadding(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          left: localViewOffset.dx,
-          top: localViewOffset.dy,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.white,
-                  width: 1,
+          padding: _getPadding(corner),
+          child: AnimatedAlign(
+            alignment: _getAlignment(corner),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              width: localViewSize.width,
-              height: localViewSize.height,
-              child: GestureDetector(
-                onPanUpdate: (details) {
-                  double dx = details.delta.dx;
-                  double dy = details.delta.dy;
-
-                  if (dx > 10 || dx < -10 || dy > 10 || dy < -10) {
-                    switch (corner) {
-                      case 1:
-                        case1(dx, dy);
-                        break;
-                      case 2:
-                        case2(dx, dy);
-                        break;
-                      case 3:
-                        case3(dx, dy);
-                        break;
-                      case 4:
-                        case4(dx, dy);
-                        break;
-                    }
-                  }
-                },
-                child: Material(
-                  child: widget.localView,
+                width: widget.localViewSize.width,
+                height: widget.localViewSize.height,
+                child: GestureDetector(
+                  onPanUpdate: _onPanUpdate,
+                  child: Material(
+                    child: widget.localView,
+                  ),
                 ),
               ),
             ),

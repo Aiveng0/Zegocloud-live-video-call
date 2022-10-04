@@ -88,7 +88,11 @@ class RowView extends StatelessWidget {
             textureSize: textureSize,
             videoModel: videoModels[1],
           ),
-          screenSize: MediaQuery.of(context).size,
+          textureSize: textureSize,
+          localViewSize: Size(
+            textureSize.width / 3.5,
+            textureSize.height / 3.5,
+          ),
         ),
       );
     }

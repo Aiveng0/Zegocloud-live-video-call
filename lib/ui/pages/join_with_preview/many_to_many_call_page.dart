@@ -26,6 +26,7 @@ class ManyToManyCallPage extends StatefulWidget {
     required this.micEnabled,
     required this.cameraEnabled,
     required this.useFrontCamera,
+    required this.callName,
   }) : super(key: key);
 
   final String userID;
@@ -38,6 +39,7 @@ class ManyToManyCallPage extends StatefulWidget {
   final bool micEnabled;
   final bool cameraEnabled;
   final bool useFrontCamera;
+  final String callName;
 
   @override
   State<ManyToManyCallPage> createState() => _VideoCallPageState();
@@ -634,28 +636,29 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                   setState(() {
                     hideControlElements = !hideControlElements;
 
-                    // callHelper.updateTexturesSize(
-                    //   context: context,
-                    //   isFullScreen: hideControlElements,
-                    //   onlineUsersCount: _onlineUsersCount,
-                    //   remoteViewIDs: _remoteViewIDs,
-                    //   localViewID: _localViewID,
-                    // );
+                    callHelper.updateTexturesSize(
+                      context: context,
+                      isFullScreen: hideControlElements,
+                      onlineUsersCount: _onlineUsersCount,
+                      remoteViewIDs: _remoteViewIDs,
+                      localViewID: _localViewID,
+                    );
                   });
                 },
                 child: RowView(
-                  // isFullScreen: hideControlElements,
+                  isFullScreen: hideControlElements,
                   videoModels: _rowViewList(),
                   textureSize: getVideoCardSize(
                     screenSize: widget.screenSize,
                     userCount: _onlineUsersCount,
-                    // isFullScreen: hideControlElements,
+                    isFullScreen: hideControlElements,
                   ),
                 ),
               ),
               CallAppBar(
                 hideControlElements: hideControlElements,
                 onlineUsersCount: _onlineUsersCount,
+                callName: widget.callName,
                 onCallNameTap: () {
                   setState(() => showCallInfoPage = !showCallInfoPage);
                 },

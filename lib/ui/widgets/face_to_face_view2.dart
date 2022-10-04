@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/utils/size_helper.dart';
 
+/// DEPRECATED! (old version)
+///
 /// You can place a card with your video anywhere on the screen.
 class FaceToFaceView2 extends StatefulWidget {
   const FaceToFaceView2({
-    super.key,
+    Key? key,
     required this.remoteView,
     required this.localView,
     required this.screenSize,
-  });
+  }) : super(key: key);
 
   final Widget remoteView;
   final Widget localView;
