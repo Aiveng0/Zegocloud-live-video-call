@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
+import 'package:zegocloud_live_video_call/utils/color_helper.dart';
 
 class PeopleTab extends StatelessWidget {
   const PeopleTab({
@@ -30,6 +31,10 @@ class PeopleTab extends StatelessWidget {
           ),
           child: Row(
             children: [
+              _AvatarBox(
+                name: name,
+              ),
+              const SizedBox(width: 10),
               Text(
                 name,
                 style: const TextStyle(
@@ -80,6 +85,47 @@ class PeopleTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AvatarBox extends StatefulWidget {
+  const _AvatarBox({
+    Key? key,
+    required this.name,
+  }) : super(key: key);
+
+  final String name;
+
+  @override
+  State<_AvatarBox> createState() => __AvatarBoxState();
+}
+
+class __AvatarBoxState extends State<_AvatarBox> {
+  late MaterialColor color;
+  @override
+  void initState() {
+    color = ColorHelper.getRandomColor();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+      ),
+      width: 30,
+      height: 30,
+      child: Text(
+        widget.name[0],
+        style: const TextStyle(
+          fontSize: 18,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }
