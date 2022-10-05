@@ -10,6 +10,7 @@ import 'package:zegocloud_live_video_call/ui/pages/join_with_preview/many_to_man
 import 'package:zegocloud_live_video_call/ui/widgets/remote_video_card.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/test_text_field.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
+import 'package:zegocloud_live_video_call/utils/color_helper.dart';
 import 'package:zegocloud_live_video_call/utils/permission_helper.dart';
 import 'package:zegocloud_live_video_call/utils/settings.dart' as settings;
 
@@ -36,6 +37,7 @@ class LoginRoomPage extends StatefulWidget {
 class _LoginRoomPageState extends State<LoginRoomPage> {
   final String _localStreamID = DateTime.now().millisecondsSinceEpoch.toString();
   final PermissionHelper permissionHelper = PermissionHelper();
+  final MaterialColor _avatarColor = ColorHelper.getRandomColor();
   late TextEditingController _usernameController;
   late int _localViewID;
   late Texture _localViewWidget;
@@ -109,6 +111,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
         micEnabled: _micEnabled,
         texture: _localViewWidget,
         viewID: _localViewID,
+        avatarColor: _avatarColor,
       );
     }
 
@@ -122,6 +125,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
         '',
       ),
       micEnabled: _micEnabled,
+      avatarColor: _avatarColor,
     );
   }
 
@@ -314,6 +318,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                                 cameraEnabled: _cameraEnabled,
                                 micEnabled: _micEnabled,
                                 useFrontCamera: _useFrontCamera,
+                                avatarColor: _avatarColor,
                                 callName: 'Test call',
                               ),
                             ),

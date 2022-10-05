@@ -11,6 +11,7 @@ import 'package:zegocloud_live_video_call/ui/widgets/call_info_page.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/row_view.dart';
 import 'package:zegocloud_live_video_call/ui/widgets/toolbar.dart';
 import 'package:zegocloud_live_video_call/utils/call_helper.dart';
+import 'package:zegocloud_live_video_call/utils/color_helper.dart';
 import 'package:zegocloud_live_video_call/utils/texture_size_helper.dart';
 
 class ManyToManyCallPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class ManyToManyCallPage extends StatefulWidget {
     required this.cameraEnabled,
     required this.useFrontCamera,
     required this.callName,
+    required this.avatarColor,
   }) : super(key: key);
 
   final String userID;
@@ -40,6 +42,7 @@ class ManyToManyCallPage extends StatefulWidget {
   final bool cameraEnabled;
   final bool useFrontCamera;
   final String callName;
+  final MaterialColor avatarColor;
 
   @override
   State<ManyToManyCallPage> createState() => _ManyToManyCallPageState();
@@ -55,7 +58,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
   String _loudestStreamID = '';
 
   late int _localViewID; // local textureID
-  Texture? _localViewWidget; // local texture
+  late Texture? _localViewWidget; // local texture
   late String _localStreamID; // local streamID
   late ZegoStream _localStream = ZegoStream(
     ZegoUser(
@@ -255,6 +258,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
         _disabledVideoModelList.add(VideoModel(
           stream: disabledVideoModel.stream,
           micEnabled: disabledVideoModel.micEnabled,
+          avatarColor: disabledVideoModel.avatarColor,
         ));
 
         _videoModelList.clear();
@@ -457,6 +461,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
             stream: stream,
             viewID: viewID,
             texture: Texture(textureId: viewID),
+            avatarColor: ColorHelper.getRandomColor(),
           ),
         );
 
@@ -488,6 +493,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
             viewID: viewID,
             texture: Texture(textureId: viewID),
             micEnabled: model.micEnabled,
+            avatarColor: model.avatarColor,
           ),
         );
 
@@ -510,6 +516,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
           texture: temp.texture,
           viewID: temp.viewID,
           micEnabled: !temp.micEnabled,
+          avatarColor: temp.avatarColor,
         );
       }
     }
@@ -522,6 +529,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
           texture: temp.texture,
           viewID: temp.viewID,
           micEnabled: !temp.micEnabled,
+          avatarColor: temp.avatarColor,
         );
       }
     }
@@ -544,23 +552,13 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
   }
 
   List<VideoModel> _rowViewList() {
-    late VideoModel localVideoModel;
-
-    if (_cameraEnabled && _localViewWidget != null) {
-      localVideoModel = VideoModel(
-        stream: _localStream,
-        texture: _localViewWidget,
-        viewID: _localViewID,
-        micEnabled: _micEnabled,
-      );
-    } else {
-      localVideoModel = VideoModel(
-        stream: _localStream,
-        texture: null,
-        viewID: null,
-        micEnabled: _micEnabled,
-      );
-    }
+    final VideoModel localVideoModel = VideoModel(
+      stream: _localStream,
+      texture: _cameraEnabled ? _localViewWidget : null,
+      viewID: _cameraEnabled ? _localViewID : null,
+      micEnabled: _micEnabled,
+      avatarColor: widget.avatarColor,
+    );
 
     List<VideoModel> list = [localVideoModel];
 
@@ -665,30 +663,6 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
                     const Duration(milliseconds: 20),
                     () => setState(() => showCallInfoPageAnimation = !showCallInfoPageAnimation),
                   );
-
-                  // final List<VideoModel> videoModels = [
-                  //   VideoModel(
-                  //     stream: _localStream,
-                  //     texture: _cameraEnabled ? _localViewWidget : null,
-                  //     viewID: _localViewID,
-                  //     micEnabled: _micEnabled,
-                  //   )
-                  // ];
-
-                  // videoModels.addAll(_videoModelList);
-                  // videoModels.addAll(_disabledVideoModelList);
-
-                  // Navigator.of(context).push(
-                  //   MaterialPageRoute(
-                  //     builder: (context) => CallInfoPage(
-                  //       onTap: () {
-                  //         // setState(() => showCallInfoPage = !showCallInfoPage);
-                  //         Navigator.of(context).pop();
-                  //       },
-                  //       videoModels: videoModels,
-                  //     ),
-                  //   ),
-                  // );
                 },
                 callEndButtonPressed: () {
                   _callEndButtonPressed();
@@ -744,6 +718,7 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
                         texture: _cameraEnabled ? _localViewWidget : null,
                         viewID: _localViewID,
                         micEnabled: _micEnabled,
+                        avatarColor: widget.avatarColor,
                       ),
                       ..._videoModelList,
                       ..._disabledVideoModelList
@@ -757,8 +732,3 @@ class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
     );
   }
 }
-
-// 202124 background
-// 28292c
-// 3c4043 button
-// ea4335 red

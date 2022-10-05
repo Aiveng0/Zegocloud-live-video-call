@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:zegocloud_live_video_call/models/video_model.dart';
-import 'package:zegocloud_live_video_call/utils/color_helper.dart';
 
 class PeopleTab extends StatelessWidget {
   const PeopleTab({
@@ -33,6 +32,7 @@ class PeopleTab extends StatelessWidget {
             children: [
               _AvatarBox(
                 name: name,
+                color: videoModels[i].avatarColor,
               ),
               const SizedBox(width: 10),
               Text(
@@ -48,7 +48,7 @@ class PeopleTab extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Icon(
-                videoModels[i].texture != null ? Icons.videocam : Icons.videocam_off,
+                videoModels[i].texture != null ? Icons.videocam_outlined : Icons.videocam_off_outlined,
                 color: Colors.black87,
               ),
             ],
@@ -89,25 +89,15 @@ class PeopleTab extends StatelessWidget {
   }
 }
 
-class _AvatarBox extends StatefulWidget {
+class _AvatarBox extends StatelessWidget {
   const _AvatarBox({
     Key? key,
     required this.name,
+    required this.color,
   }) : super(key: key);
 
   final String name;
-
-  @override
-  State<_AvatarBox> createState() => __AvatarBoxState();
-}
-
-class __AvatarBoxState extends State<_AvatarBox> {
-  late MaterialColor color;
-  @override
-  void initState() {
-    color = ColorHelper.getRandomColor();
-    super.initState();
-  }
+  final MaterialColor? color;
 
   @override
   Widget build(BuildContext context) {
@@ -115,12 +105,12 @@ class __AvatarBoxState extends State<_AvatarBox> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color,
+        color: color ?? Colors.amber,
       ),
       width: 30,
       height: 30,
       child: Text(
-        widget.name[0],
+        name[0],
         style: const TextStyle(
           fontSize: 18,
           color: Colors.white,
