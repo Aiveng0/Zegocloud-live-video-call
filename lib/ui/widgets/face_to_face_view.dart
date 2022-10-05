@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 /// You can put a card with your video in the corners of the screen.
@@ -7,19 +9,38 @@ class FaceToFaceView extends StatefulWidget {
     required this.remoteView,
     required this.localView,
     required this.textureSize,
-    required this.localViewSize,
   }) : super(key: key);
 
   final Widget remoteView;
   final Widget localView;
   final Size textureSize;
-  final Size localViewSize;
 
   @override
   State<FaceToFaceView> createState() => _FaceToFaceViewState();
 }
 
 class _FaceToFaceViewState extends State<FaceToFaceView> {
+  late double localViewWidth;
+  late double localViewHeight;
+
+  @override
+  void initState() {
+    localViewWidth = widget.textureSize.width / 3.5;
+    localViewHeight = widget.textureSize.height / 3.5;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant FaceToFaceView oldWidget) {
+    if (oldWidget.textureSize != widget.textureSize) {
+      log(name: 'FaceToFaceView > didUpdateWidget', 'localView size updated');
+
+      localViewWidth = widget.textureSize.width / 3.5;
+      localViewHeight = widget.textureSize.height / 3.5;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   /// - 1 - top left position.
   /// - 2 - top right position.
   /// - 3 - bottom right (default) position.
@@ -118,8 +139,8 @@ class _FaceToFaceViewState extends State<FaceToFaceView> {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                width: widget.localViewSize.width,
-                height: widget.localViewSize.height,
+                width: localViewWidth,
+                height: localViewHeight,
                 child: GestureDetector(
                   onPanUpdate: _onPanUpdate,
                   child: Material(
