@@ -42,10 +42,10 @@ class ManyToManyCallPage extends StatefulWidget {
   final String callName;
 
   @override
-  State<ManyToManyCallPage> createState() => _VideoCallPageState();
+  State<ManyToManyCallPage> createState() => _ManyToManyCallPageState();
 }
 
-class _VideoCallPageState extends State<ManyToManyCallPage> {
+class _ManyToManyCallPageState extends State<ManyToManyCallPage> {
   final CallHelper callHelper = CallHelper();
   late bool _micEnabled = widget.micEnabled;
   late bool _cameraEnabled = widget.cameraEnabled;
@@ -76,21 +76,17 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   VideoModel? _loudestDisabledVideoModel;
 
   bool showCallInfoPage = false;
+  bool showCallInfoPageAnimation = false;
   bool hideControlElements = false; // hide appbar and toolbar
 
   @override
   void initState() {
-    super.initState();
     _eventHandler();
     _createUserAndLoginRoom();
     _startSoundLevelMonitor();
     _publishStream();
     _createPreviewRenderer();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    super.initState();
   }
 
   Future<void> _createUserAndLoginRoom() async {
@@ -618,7 +614,11 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
       onWillPop: () async {
         /// Close the [CallInfoPage] when [showCallInfoPage] is true and user pressed back-button.
         if (showCallInfoPage) {
-          setState(() => showCallInfoPage = !showCallInfoPage);
+          setState(() => showCallInfoPageAnimation = !showCallInfoPageAnimation);
+          Future.delayed(
+            const Duration(milliseconds: 200),
+            () => setState(() => showCallInfoPage = !showCallInfoPage),
+          );
           return false;
         }
 
@@ -661,6 +661,34 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
                 callName: widget.callName,
                 onCallNameTap: () {
                   setState(() => showCallInfoPage = !showCallInfoPage);
+                  Future.delayed(
+                    const Duration(milliseconds: 20),
+                    () => setState(() => showCallInfoPageAnimation = !showCallInfoPageAnimation),
+                  );
+
+                  // final List<VideoModel> videoModels = [
+                  //   VideoModel(
+                  //     stream: _localStream,
+                  //     texture: _cameraEnabled ? _localViewWidget : null,
+                  //     viewID: _localViewID,
+                  //     micEnabled: _micEnabled,
+                  //   )
+                  // ];
+
+                  // videoModels.addAll(_videoModelList);
+                  // videoModels.addAll(_disabledVideoModelList);
+
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => CallInfoPage(
+                  //       onTap: () {
+                  //         // setState(() => showCallInfoPage = !showCallInfoPage);
+                  //         Navigator.of(context).pop();
+                  //       },
+                  //       videoModels: videoModels,
+                  //     ),
+                  //   ),
+                  // );
                 },
                 callEndButtonPressed: () {
                   _callEndButtonPressed();
@@ -695,28 +723,33 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
               ),
 
               /// Call Info Page
-              AnimatedPositioned(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                top: showCallInfoPage ? 0 : MediaQuery.of(context).size.height,
-                child: CallInfoPage(
-                  onTap: () {
-                    setState(() => showCallInfoPage = !showCallInfoPage);
-                  },
-                  videoModels: <VideoModel>[
-                    VideoModel(
-                      stream: _localStream,
-                      texture: _cameraEnabled ? _localViewWidget : null,
-                      viewID: _localViewID,
-                      micEnabled: _micEnabled,
-                    ),
-                    ..._videoModelList,
-                    ..._disabledVideoModelList
-                  ],
+              if (showCallInfoPage)
+                AnimatedPositioned(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  top: showCallInfoPageAnimation ? 0 : MediaQuery.of(context).size.height,
+                  child: CallInfoPage(
+                    onTap: () {
+                      setState(() => showCallInfoPageAnimation = !showCallInfoPageAnimation);
+                      Future.delayed(
+                        const Duration(milliseconds: 200),
+                        () => setState(() => showCallInfoPage = !showCallInfoPage),
+                      );
+                    },
+                    videoModels: <VideoModel>[
+                      VideoModel(
+                        stream: _localStream,
+                        texture: _cameraEnabled ? _localViewWidget : null,
+                        viewID: _localViewID,
+                        micEnabled: _micEnabled,
+                      ),
+                      ..._videoModelList,
+                      ..._disabledVideoModelList
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -725,9 +758,7 @@ class _VideoCallPageState extends State<ManyToManyCallPage> {
   }
 }
 
-
-
 // 202124 background
 // 28292c
-// 3c4043 button 
+// 3c4043 button
 // ea4335 red
