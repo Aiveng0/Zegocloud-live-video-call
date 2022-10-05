@@ -53,7 +53,7 @@ class _CallAppBarState extends State<CallAppBar> {
               ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 30),
           OnlineUsersCounter(
             onlineUsersCount: widget.onlineUsersCount,
           ),

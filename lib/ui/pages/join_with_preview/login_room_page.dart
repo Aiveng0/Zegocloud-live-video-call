@@ -319,7 +319,7 @@ class _LoginRoomPageState extends State<LoginRoomPage> {
                                 micEnabled: _micEnabled,
                                 useFrontCamera: _useFrontCamera,
                                 avatarColor: _avatarColor,
-                                callName: 'Test call',
+                                callName: 'Event name some event',
                               ),
                             ),
                           );

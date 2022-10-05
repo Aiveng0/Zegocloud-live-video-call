@@ -12,12 +12,14 @@ class CallName extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          callName,
-          style: const TextStyle(
-            color: Colors.white,
+        Flexible(
+          child: Text(
+            callName,
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
-          overflow: TextOverflow.ellipsis,
         ),
         const Icon(
           Icons.arrow_right,
